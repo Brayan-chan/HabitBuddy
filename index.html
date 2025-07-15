@@ -78,39 +78,111 @@
     </script>
     <style>
         /* Custom scrollbar styles */
-        .overflow-y-auto::-webkit-scrollbar {
+        .overflow-y-auto::-webkit-scrollbar,
+        .custom-scrollbar::-webkit-scrollbar {
             width: 6px;
         }
         
-        .overflow-y-auto::-webkit-scrollbar-track {
+        .overflow-y-auto::-webkit-scrollbar-track,
+        .custom-scrollbar::-webkit-scrollbar-track {
             background: transparent;
         }
         
-        .overflow-y-auto::-webkit-scrollbar-thumb {
+        .overflow-y-auto::-webkit-scrollbar-thumb,
+        .custom-scrollbar::-webkit-scrollbar-thumb {
             background: #d1d5db;
             border-radius: 3px;
         }
         
-        .dark .overflow-y-auto::-webkit-scrollbar-thumb {
+        .dark .overflow-y-auto::-webkit-scrollbar-thumb,
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb {
             background: #4b5563;
         }
         
-        .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+        .overflow-y-auto::-webkit-scrollbar-thumb:hover,
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: #9ca3af;
         }
         
-        .dark .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+        .dark .overflow-y-auto::-webkit-scrollbar-thumb:hover,
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: #6b7280;
         }
         
         /* Smooth scrolling */
-        .overflow-y-auto {
+        .overflow-y-auto,
+        .custom-scrollbar {
             scroll-behavior: smooth;
+        }
+        
+        /* Chat messages specific scrollbar */
+        #chatMessages::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        #chatMessages::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+        
+        .dark #chatMessages::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        
+        #chatMessages::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        
+        .dark #chatMessages::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+        
+        #chatMessages::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        
+        .dark #chatMessages::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+        
+        /* Meal suggestions scrollbar */
+        #mealSuggestion::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        #mealSuggestion::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        #mealSuggestion::-webkit-scrollbar-thumb {
+            background: #e2e8f0;
+            border-radius: 3px;
+        }
+        
+        .dark #mealSuggestion::-webkit-scrollbar-thumb {
+            background: #475569;
         }
         
         /* Max height utilities */
         .max-h-90vh {
             max-height: 90vh;
+        }
+        
+        /* Hide scrollbar for Firefox */
+        .overflow-y-auto,
+        .custom-scrollbar,
+        #chatMessages,
+        #mealSuggestion {
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 transparent;
+        }
+        
+        .dark .overflow-y-auto,
+        .dark .custom-scrollbar,
+        .dark #chatMessages,
+        .dark #mealSuggestion {
+            scrollbar-color: #475569 transparent;
         }
     </style>
 </head>
@@ -172,10 +244,10 @@
         </div>
 
         <!-- Main Content -->
-        <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
-            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 h-full">
+        <main class="flex-1 max-w-8xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full">
                 <!-- Left Sidebar - Dashboard & Stats -->
-                <div class="lg:col-span-1 space-y-4">
+                <div class="lg:col-span-3 space-y-4">
                     <!-- Today's Progress -->
                     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
                         <h3 class="text-lg font-semibold mb-4 flex items-center">
@@ -227,7 +299,7 @@
                     <!-- Active Challenges -->
                     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
                         <h3 class="text-lg font-semibold mb-4">🏆 Retos Activos</h3>
-                        <div id="activeChallenges" class="space-y-2">
+                        <div id="activeChallenges" class="space-y-2 max-h-32 overflow-y-auto custom-scrollbar">
                             <div class="text-sm text-gray-500 text-center py-4">
                                 No tienes retos activos
                             </div>
@@ -261,7 +333,7 @@
                 </div>
 
                 <!-- Center - Main Chat -->
-                <div class="lg:col-span-2">
+                <div class="lg:col-span-6">
                     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg h-full flex flex-col">
                         <!-- Chat Header -->
                         <div class="p-4 border-b border-gray-200 dark:border-gray-700">
@@ -287,7 +359,7 @@
                         </div>
 
                         <!-- Chat Messages -->
-                        <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-4 min-h-96">
+                        <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-4 min-h-[500px] max-h-[600px]">
                             <div class="flex justify-center">
                                 <div class="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-4 py-2 rounded-lg text-sm max-w-md text-center">
                                     ¡Hola! Soy tu HabitBuddy. Estoy aquí para ayudarte a crear hábitos saludables y transformar tu vida. Cuéntame sobre tus objetivos y empecemos juntos este viaje. 🌱✨
@@ -325,64 +397,82 @@
                 </div>
 
                 <!-- Right Sidebar - Detailed Stats & Tools -->
-                <div class="lg:col-span-1 space-y-4">
+                <div class="lg:col-span-3 space-y-4">
                     <!-- Health Metrics -->
-                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4">
-                        <h3 class="font-semibold mb-3">📊 Métricas de Salud</h3>
-                        <div class="space-y-3">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                        <h3 class="font-semibold mb-4 text-lg">📊 Métricas de Salud</h3>
+                        <div class="space-y-4">
                             <div>
-                                <div class="flex justify-between text-sm mb-1">
+                                <div class="flex justify-between text-sm mb-2">
                                     <span>Nutrición</span>
-                                    <span id="nutritionScore">85%</span>
+                                    <span id="nutritionScore">0%</span>
                                 </div>
-                                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                    <div class="bg-green-500 h-2 rounded-full" style="width: 85%"></div>
+                                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                                    <div id="nutritionBar" class="bg-green-500 h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
                                 </div>
                             </div>
                             <div>
-                                <div class="flex justify-between text-sm mb-1">
+                                <div class="flex justify-between text-sm mb-2">
                                     <span>Actividad Física</span>
-                                    <span id="activityScore">60%</span>
+                                    <span id="activityScore">0%</span>
                                 </div>
-                                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                    <div class="bg-blue-500 h-2 rounded-full" style="width: 60%"></div>
+                                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                                    <div id="activityBar" class="bg-blue-500 h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
                                 </div>
                             </div>
                             <div>
-                                <div class="flex justify-between text-sm mb-1">
+                                <div class="flex justify-between text-sm mb-2">
                                     <span>Sueño</span>
-                                    <span id="sleepScore">70%</span>
+                                    <span id="sleepScore">0%</span>
                                 </div>
-                                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                    <div class="bg-purple-500 h-2 rounded-full" style="width: 70%"></div>
+                                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                                    <div id="sleepBar" class="bg-purple-500 h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
                                 </div>
                             </div>
                             <div>
-                                <div class="flex justify-between text-sm mb-1">
+                                <div class="flex justify-between text-sm mb-2">
                                     <span>Productividad</span>
-                                    <span id="productivityScore">45%</span>
+                                    <span id="productivityScore">0%</span>
                                 </div>
-                                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                    <div class="bg-yellow-500 h-2 rounded-full" style="width: 45%"></div>
+                                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                                    <div id="productivityBar" class="bg-yellow-500 h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Weekly Habits -->
-                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4">
-                        <h3 class="font-semibold mb-3">📅 Hábitos Semanales</h3>
-                        <div class="grid grid-cols-7 gap-1 text-xs">
-                            <div class="text-center font-medium">L</div>
-                            <div class="text-center font-medium">M</div>
-                            <div class="text-center font-medium">X</div>
-                            <div class="text-center font-medium">J</div>
-                            <div class="text-center font-medium">V</div>
-                            <div class="text-center font-medium">S</div>
-                            <div class="text-center font-medium">D</div>
-                        </div>
-                        <div id="habitGrid" class="mt-2 space-y-2">
-                            <!-- Habit grid will be populated here -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                        <h3 class="font-semibold mb-4 text-lg">📅 Calendario de Hábitos</h3>
+                        <div class="space-y-4">
+                            <!-- Legend -->
+                            <div class="flex justify-center space-x-4 text-xs">
+                                <div class="flex items-center space-x-1">
+                                    <div class="w-3 h-3 bg-green-500 rounded"></div>
+                                    <span>Cumplido</span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <div class="w-3 h-3 bg-orange-500 rounded"></div>
+                                    <span>Parcial</span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <div class="w-3 h-3 bg-red-500 rounded"></div>
+                                    <span>No cumplido</span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <div class="w-3 h-3 bg-gray-300 rounded"></div>
+                                    <span>Sin datos</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Days of week header with actual dates -->
+                            <div id="habitHeader" class="grid grid-cols-8 gap-1 text-xs font-medium">
+                                <!-- Header will be populated dynamically -->
+                            </div>
+                            
+                            <div id="habitGrid" class="space-y-1">
+                                <!-- Habit grid will be populated here -->
+                            </div>
                         </div>
                     </div>
 
@@ -396,7 +486,7 @@
                                 🧑‍🍳 Sugerir Platillo
                             </button>
                         </div>
-                        <div id="mealSuggestion" class="mt-3 hidden">
+                        <div id="mealSuggestion" class="mt-3 hidden max-h-64 overflow-y-auto bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
                             <!-- Meal suggestions will appear here -->
                         </div>
                     </div>
@@ -404,7 +494,7 @@
                     <!-- Insights -->
                     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4">
                         <h3 class="font-semibold mb-3">💡 Insights del Día</h3>
-                        <div id="dailyInsights" class="text-sm text-gray-600 dark:text-gray-400 space-y-2">
+                        <div id="dailyInsights" class="text-sm text-gray-600 dark:text-gray-400 space-y-2 max-h-32 overflow-y-auto custom-scrollbar">
                             <p>Completa tu primer check-in para obtener insights personalizados.</p>
                         </div>
                     </div>
@@ -424,7 +514,7 @@
                     </button>
                 </div>
                 
-                <div class="overflow-y-auto flex-1 p-6">
+                <div class="overflow-y-auto flex-1 p-6 custom-scrollbar">
                     <div class="space-y-6">
                     <!-- API Key -->
                     <div>
@@ -571,8 +661,8 @@
 
         <!-- Challenge Modal -->
         <div id="challengeModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full mx-4 p-6">
-                <div class="flex justify-between items-center mb-4">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full mx-4 max-h-[80vh] flex flex-col">
+                <div class="flex justify-between items-center mb-4 p-6 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
                     <h3 class="text-lg font-semibold">🏆 Nuevo Reto</h3>
                     <button id="closeChallengeBtn" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -581,11 +671,11 @@
                     </button>
                 </div>
                 
-                <div id="challengeContent" class="space-y-4">
+                <div id="challengeContent" class="space-y-4 overflow-y-auto flex-1 px-6 custom-scrollbar">
                     <!-- Challenge content will be populated here -->
                 </div>
 
-                <div class="flex space-x-3 mt-6">
+                <div class="flex space-x-3 mt-6 p-6 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
                     <button id="acceptChallengeBtn" class="flex-1 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md transition-colors">
                         Aceptar Reto
                     </button>
@@ -1075,12 +1165,14 @@
                 };
 
                 this.habits = [
-                    { name: 'Beber agua', icon: '💧', target: 8, current: 0 },
-                    { name: 'Ejercicio', icon: '🏃‍♂️', target: 1, current: 0 },
-                    { name: 'Dormir 8h', icon: '😴', target: 1, current: 0 },
-                    { name: 'Meditar', icon: '🧘‍♂️', target: 1, current: 0 },
-                    { name: 'Leer', icon: '📚', target: 1, current: 0 }
+                    { name: 'Agua', icon: '💧', target: 8, current: 0, unit: 'vasos', type: 'water' },
+                    { name: 'Ejercicio', icon: '🏃‍♂️', target: 1, current: 0, unit: 'sesión', type: 'exercise' },
+                    { name: 'Dormir', icon: '😴', target: 8, current: 0, unit: 'horas', type: 'sleep' },
+                    { name: 'Meditar', icon: '🧘‍♂️', target: 1, current: 0, unit: 'sesión', type: 'meditation' },
+                    { name: 'Leer', icon: '📚', target: 1, current: 0, unit: 'sesión', type: 'reading' }
                 ];
+
+                this.weeklyHabits = this.getWeeklyHabitData();
 
                 this.hourlyCheckTimer = null;
                 this.timeUpdateTimer = null;
@@ -1090,6 +1182,10 @@
 
             async initializeApp() {
                 this.loadUserData();
+                
+                // Force initialize weekly habits for current week
+                this.weeklyHabits = this.getWeeklyHabitData();
+                
                 this.initializeElements();
                 this.bindEvents();
                 this.startTimeUpdates();
@@ -1119,6 +1215,25 @@
                 
                 // Schedule notifications if permissions are granted
                 this.scheduleNotifications();
+                
+                // Ensure today's data is properly initialized
+                this.ensureTodayDataInitialized();
+            }
+
+            ensureTodayDataInitialized() {
+                const today = new Date().toDateString();
+                
+                // Ensure today exists in weekly habits
+                if (!this.weeklyHabits[today]) {
+                    this.weeklyHabits[today] = {
+                        water: { completed: 0, target: 8 },
+                        exercise: { completed: 0, target: 1 },
+                        sleep: { completed: 0, target: 8 },
+                        meditation: { completed: 0, target: 1 },
+                        reading: { completed: 0, target: 1 }
+                    };
+                    this.saveUserData();
+                }
             }
 
             loadUserData() {
@@ -1127,6 +1242,7 @@
                 const savedSettings = localStorage.getItem('habitbuddy_settings');
                 const savedHistory = localStorage.getItem('habitbuddy_history');
                 const savedHabits = localStorage.getItem('habitbuddy_habits');
+                const savedWeeklyHabits = localStorage.getItem('habitbuddy_weekly_habits');
 
                 if (savedProfile) {
                     this.userProfile = { ...this.userProfile, ...JSON.parse(savedProfile) };
@@ -1151,6 +1267,12 @@
                 if (savedHabits) {
                     this.habits = JSON.parse(savedHabits);
                 }
+
+                if (savedWeeklyHabits) {
+                    this.weeklyHabits = JSON.parse(savedWeeklyHabits);
+                } else {
+                    this.weeklyHabits = this.getWeeklyHabitData();
+                }
             }
 
             saveUserData() {
@@ -1159,6 +1281,114 @@
                 localStorage.setItem('habitbuddy_settings', JSON.stringify(this.settings));
                 localStorage.setItem('habitbuddy_history', JSON.stringify(this.conversationHistory));
                 localStorage.setItem('habitbuddy_habits', JSON.stringify(this.habits));
+                localStorage.setItem('habitbuddy_weekly_habits', JSON.stringify(this.weeklyHabits));
+            }
+
+            getWeeklyHabitData() {
+                const saved = localStorage.getItem('habitbuddy_weekly_habits');
+                let weekData = {};
+                
+                if (saved) {
+                    weekData = JSON.parse(saved);
+                }
+                
+                // Always ensure we have data for the current week
+                const today = new Date();
+                
+                // Get the past 7 days including today
+                for (let i = 6; i >= 0; i--) {
+                    const date = new Date(today);
+                    date.setDate(date.getDate() - i);
+                    const dateKey = date.toDateString();
+                    
+                    // Initialize if doesn't exist
+                    if (!weekData[dateKey]) {
+                        weekData[dateKey] = {
+                            water: { completed: 0, target: 8 },
+                            exercise: { completed: 0, target: 1 },
+                            sleep: { completed: 0, target: 8 },
+                            meditation: { completed: 0, target: 1 },
+                            reading: { completed: 0, target: 1 }
+                        };
+                    }
+                }
+                
+                return weekData;
+            }
+
+            updateHabitProgress(habitType, value) {
+                const today = new Date().toDateString();
+                
+                console.log(`Updating habit: ${habitType}, value: ${value}, date: ${today}`);
+                
+                // Ensure we have today's data
+                if (!this.weeklyHabits[today]) {
+                    this.weeklyHabits[today] = {
+                        water: { completed: 0, target: 8 },
+                        exercise: { completed: 0, target: 1 },
+                        sleep: { completed: 0, target: 8 },
+                        meditation: { completed: 0, target: 1 },
+                        reading: { completed: 0, target: 1 }
+                    };
+                }
+                
+                if (this.weeklyHabits[today][habitType]) {
+                    const oldValue = this.weeklyHabits[today][habitType].completed;
+                    
+                    if (habitType === 'sleep') {
+                        // Para sueño, establecer el valor directamente
+                        this.weeklyHabits[today][habitType].completed = Math.max(0, value);
+                    } else if (habitType === 'water') {
+                        // Para agua, incrementar pero no pasar de límites razonables
+                        this.weeklyHabits[today][habitType].completed = Math.min(
+                            this.weeklyHabits[today][habitType].completed + value, 
+                            20 // máximo 20 vasos por día
+                        );
+                    } else {
+                        // Para otros hábitos (ejercicio, meditación, lectura)
+                        this.weeklyHabits[today][habitType].completed = Math.min(
+                            this.weeklyHabits[today][habitType].completed + value,
+                            this.weeklyHabits[today][habitType].target * 3 // máximo 3 veces el objetivo
+                        );
+                    }
+                    
+                    const newValue = this.weeklyHabits[today][habitType].completed;
+                    console.log(`${habitType} updated from ${oldValue} to ${newValue} for ${today}`);
+                }
+                
+                // Debug: Log current weekly habits data
+                console.log('Current weekly habits:', this.weeklyHabits);
+                
+                this.saveUserData();
+                this.updateUI();
+            }
+
+            getHabitColor(habitType, completed, target) {
+                if (completed === 0) {
+                    return 'bg-gray-300 dark:bg-gray-600'; // Sin datos
+                }
+                
+                switch (habitType) {
+                    case 'sleep':
+                        if (completed >= 8) return 'bg-green-500'; // Verde: 8+ horas
+                        if (completed >= 6) return 'bg-orange-500'; // Naranja: 6-7 horas
+                        return 'bg-red-500'; // Rojo: menos de 6 horas
+                        
+                    case 'water':
+                        const percentage = (completed / target) * 100;
+                        if (percentage >= 100) return 'bg-green-500'; // Verde: cumplido
+                        if (percentage >= 50) return 'bg-orange-500'; // Naranja: parcial
+                        return 'bg-red-500'; // Rojo: no cumplido
+                        
+                    case 'exercise':
+                    case 'meditation':
+                    case 'reading':
+                        if (completed >= target) return 'bg-green-500'; // Verde: cumplido
+                        return 'bg-red-500'; // Rojo: no cumplido
+                        
+                    default:
+                        return 'bg-gray-300 dark:bg-gray-600';
+                }
             }
 
             checkDailyReset() {
@@ -1179,10 +1409,21 @@
                         insights: []
                     };
                     
-                    // Reset habit progress
+                    // Reset habit progress for today
                     this.habits.forEach(habit => {
                         habit.current = 0;
                     });
+                    
+                    // Initialize today's habit data if not exists
+                    if (!this.weeklyHabits[today]) {
+                        this.weeklyHabits[today] = {
+                            water: { completed: 0, target: 8 },
+                            exercise: { completed: 0, target: 1 },
+                            sleep: { completed: 0, target: 8 },
+                            meditation: { completed: 0, target: 1 },
+                            reading: { completed: 0, target: 1 }
+                        };
+                    }
                     
                     this.saveUserData();
                 }
@@ -1280,10 +1521,15 @@
                     
                     // Stats
                     nutritionScore: document.getElementById('nutritionScore'),
+                    nutritionBar: document.getElementById('nutritionBar'),
                     activityScore: document.getElementById('activityScore'),
+                    activityBar: document.getElementById('activityBar'),
                     sleepScore: document.getElementById('sleepScore'),
+                    sleepBar: document.getElementById('sleepBar'),
                     productivityScore: document.getElementById('productivityScore'),
+                    productivityBar: document.getElementById('productivityBar'),
                     habitGrid: document.getElementById('habitGrid'),
+                    habitHeader: document.getElementById('habitHeader'),
                     dailyInsights: document.getElementById('dailyInsights')
                 };
 
@@ -1840,8 +2086,10 @@ Responde como HabitBuddy de manera útil y motivadora.`;
                 }
 
                 // Check for water intake
-                if (userMessage.toLowerCase().includes('agua') || userMessage.toLowerCase().includes('hidrat')) {
+                if (userMessage.toLowerCase().includes('agua') || userMessage.toLowerCase().includes('hidrat') || 
+                    userMessage.toLowerCase().includes('bebí') || userMessage.toLowerCase().includes('tomé')) {
                     this.dailyData.water += 1;
+                    this.updateHabitProgress('water', 1);
                     
                     // Send hydration encouragement
                     if (this.settings.enableHydrationReminders && this.notificationManager.permission === 'granted') {
@@ -1857,7 +2105,10 @@ Responde como HabitBuddy de manera útil y motivadora.`;
 
                 // Check for exercise mentions
                 if (userMessage.toLowerCase().includes('ejercicio') || userMessage.toLowerCase().includes('entrenam') || 
-                    userMessage.toLowerCase().includes('gym') || userMessage.toLowerCase().includes('corr')) {
+                    userMessage.toLowerCase().includes('gym') || userMessage.toLowerCase().includes('corr') ||
+                    userMessage.toLowerCase().includes('deporte') || userMessage.toLowerCase().includes('caminar')) {
+                    
+                    this.updateHabitProgress('exercise', 1);
                     
                     if (this.settings.enableMotivationalMessages && this.notificationManager.permission === 'granted') {
                         setTimeout(() => {
@@ -1866,6 +2117,18 @@ Responde como HabitBuddy de manera útil y motivadora.`;
                             );
                         }, 2000);
                     }
+                }
+
+                // Check for meditation mentions
+                if (userMessage.toLowerCase().includes('meditar') || userMessage.toLowerCase().includes('meditación') ||
+                    userMessage.toLowerCase().includes('mindfulness') || userMessage.toLowerCase().includes('respiración')) {
+                    this.updateHabitProgress('meditation', 1);
+                }
+
+                // Check for reading mentions
+                if (userMessage.toLowerCase().includes('leer') || userMessage.toLowerCase().includes('libro') ||
+                    userMessage.toLowerCase().includes('lectura') || userMessage.toLowerCase().includes('leí')) {
+                    this.updateHabitProgress('reading', 1);
                 }
 
                 // Check for challenge suggestions
@@ -1880,22 +2143,34 @@ Responde como HabitBuddy de manera útil y motivadora.`;
                     }
                 }
 
-                // Extract sleep hours
-                const sleepMatch = userMessage.match(/dormí\s*(\d+)\s*horas?/i);
+                // Extract sleep hours - mejorar la detección
+                const sleepMatches = [
+                    userMessage.match(/dormí\s*(\d+(?:\.\d+)?)\s*horas?/i),
+                    userMessage.match(/(\d+(?:\.\d+)?)\s*horas?\s*de\s*sueño/i),
+                    userMessage.match(/dormí\s*(\d+(?:\.\d+)?)/i),
+                    userMessage.match(/(\d+(?:\.\d+)?)\s*h\s*de\s*sueño/i)
+                ];
+                
+                const sleepMatch = sleepMatches.find(match => match !== null);
                 if (sleepMatch) {
-                    const sleepHours = parseInt(sleepMatch[1]);
+                    const sleepHours = parseFloat(sleepMatch[1]);
                     this.dailyData.sleep = sleepHours;
+                    this.updateHabitProgress('sleep', sleepHours);
                     
                     // Send sleep feedback
                     if (this.settings.enableMotivationalMessages && this.notificationManager.permission === 'granted') {
                         setTimeout(() => {
-                            if (sleepHours >= 7) {
+                            if (sleepHours >= 8) {
                                 this.notificationManager.showMotivationalMessage(
                                     '😴 ¡Perfecto! Un buen descanso es fundamental para tus objetivos'
                                 );
+                            } else if (sleepHours >= 6) {
+                                this.notificationManager.showMotivationalMessage(
+                                    '⏰ Casi las 8 horas ideales. Intenta dormir un poco más mañana'
+                                );
                             } else {
                                 this.notificationManager.showMotivationalMessage(
-                                    '⏰ Intenta dormir más esta noche. Tu cuerpo necesita descanso para recuperarse'
+                                    '⚠️ Necesitas más descanso. Tu cuerpo necesita al menos 6-8 horas'
                                 );
                             }
                         }, 2000);
@@ -1976,6 +2251,9 @@ Sé específico con las cantidades y calorías.`;
                     this.elements.messageInput.focus();
                     
                     if (action === 'water') {
+                        // Registro automático del agua
+                        this.dailyData.water += 1;
+                        this.updateHabitProgress('water', 1);
                         this.sendMessage();
                     }
                 }
@@ -2184,22 +2462,91 @@ Formato de respuesta:
             }
 
             updateHabitGrid() {
-                const days = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
-                const today = new Date().getDay();
+                const today = new Date();
+                const habitTypes = ['water', 'exercise', 'sleep', 'meditation', 'reading'];
+                const habitNames = ['💧 Agua', '🏃‍♂️ Ejercicio', '😴 Dormir', '🧘‍♂️ Meditar', '📚 Leer'];
                 
-                this.elements.habitGrid.innerHTML = this.habits.map(habit => `
-                    <div class="flex items-center justify-between mb-2">
-                        <div class="flex items-center space-x-2">
-                            <span class="text-lg">${habit.icon}</span>
-                            <span class="text-xs font-medium">${habit.name}</span>
+                // Get the past 7 days including today
+                const weekDates = [];
+                for (let i = 6; i >= 0; i--) {
+                    const date = new Date(today);
+                    date.setDate(date.getDate() - i);
+                    weekDates.push(date);
+                }
+                
+                // Update header with actual dates
+                if (this.elements.habitHeader) {
+                    this.elements.habitHeader.innerHTML = `
+                        <div class="text-center font-medium">Hábito</div>
+                        ${weekDates.map(date => {
+                            const isToday = date.toDateString() === today.toDateString();
+                            const dayShort = date.toLocaleDateString('es-ES', { weekday: 'short' });
+                            const dayNum = date.getDate();
+                            return `<div class="text-center text-xs ${isToday ? 'font-bold text-blue-600' : 'font-medium'}">
+                                <div>${dayShort}</div>
+                                <div class="text-xs opacity-75">${dayNum}</div>
+                            </div>`;
+                        }).join('')}
+                    `;
+                }
+                
+                // Debug: Log the dates to verify they're correct
+                console.log('Week dates:', weekDates.map(d => ({
+                    date: d.toDateString(),
+                    day: d.toLocaleDateString('es-ES', { weekday: 'short' }),
+                    isToday: d.toDateString() === today.toDateString()
+                })));
+                
+                this.elements.habitGrid.innerHTML = habitTypes.map((habitType, index) => {
+                    const habitName = habitNames[index];
+                    
+                    return `
+                        <div class="grid grid-cols-8 gap-1 items-center py-1">
+                            <div class="text-xs font-medium truncate pr-1" title="${habitName}">${habitName}</div>
+                            ${weekDates.map(date => {
+                                const dateKey = date.toDateString();
+                                const isToday = dateKey === today.toDateString();
+                                
+                                // Debug: Log which date we're processing
+                                console.log(`Processing ${habitType} for ${dateKey}, isToday: ${isToday}`);
+                                
+                                const habitData = this.weeklyHabits[dateKey] && this.weeklyHabits[dateKey][habitType] 
+                                    ? this.weeklyHabits[dateKey][habitType] 
+                                    : { completed: 0, target: habitType === 'sleep' ? 8 : (habitType === 'water' ? 8 : 1) };
+                                
+                                const color = this.getHabitColor(habitType, habitData.completed, habitData.target);
+                                
+                                // Create a more detailed tooltip
+                                const dayName = date.toLocaleDateString('es-ES', { weekday: 'long' });
+                                const dateStr = date.toLocaleDateString('es-ES');
+                                let tooltip = `${dayName} ${dateStr}`;
+                                
+                                if (isToday) tooltip += ' (HOY)';
+                                tooltip += ' - ';
+                                
+                                switch (habitType) {
+                                    case 'sleep':
+                                        tooltip += habitData.completed > 0 ? `${habitData.completed}h de sueño` : 'Sin registrar';
+                                        break;
+                                    case 'water':
+                                        tooltip += habitData.completed > 0 ? `${habitData.completed}/${habitData.target} vasos de agua` : 'Sin registrar';
+                                        break;
+                                    case 'exercise':
+                                        tooltip += habitData.completed > 0 ? (habitData.completed >= habitData.target ? 'Ejercicio completado' : 'Ejercicio parcial') : 'Sin ejercicio';
+                                        break;
+                                    case 'meditation':
+                                        tooltip += habitData.completed > 0 ? (habitData.completed >= habitData.target ? 'Meditación completada' : 'Meditación parcial') : 'Sin meditar';
+                                        break;
+                                    case 'reading':
+                                        tooltip += habitData.completed > 0 ? (habitData.completed >= habitData.target ? 'Lectura completada' : 'Lectura parcial') : 'Sin leer';
+                                        break;
+                                }
+                                
+                                return `<div class="w-5 h-5 rounded-sm transition-all duration-200 hover:scale-125 cursor-pointer ${color} ${isToday ? 'ring-2 ring-blue-400 ring-offset-1' : ''}" title="${tooltip}"></div>`;
+                            }).join('')}
                         </div>
-                        <div class="grid grid-cols-7 gap-1">
-                            ${days.map((day, index) => `
-                                <div class="w-4 h-4 rounded ${index === today ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-600'}"></div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
             }
 
             addMessage(role, content) {
@@ -2207,7 +2554,7 @@ Formato de respuesta:
                 messageDiv.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'}`;
 
                 const bubbleDiv = document.createElement('div');
-                bubbleDiv.className = `max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                bubbleDiv.className = `max-w-sm lg:max-w-xl px-4 py-2 rounded-lg ${
                     role === 'user' 
                         ? 'bg-green-500 text-white' 
                         : role === 'assistant'
@@ -2325,6 +2672,7 @@ Formato de respuesta:
                     localStorage.removeItem('habitbuddy_settings');
                     localStorage.removeItem('habitbuddy_history');
                     localStorage.removeItem('habitbuddy_habits');
+                    localStorage.removeItem('habitbuddy_weekly_habits');
                     localStorage.removeItem('habitbuddy_api_key');
                     localStorage.removeItem('habitbuddy_scheduled_notifications');
                     location.reload();
@@ -2383,16 +2731,45 @@ Formato de respuesta:
                 // Update active challenges
                 this.updateActiveChallenges();
                 
-                // Update scores (simplified calculation)
-                const calorieRatio = this.dailyData.calories / this.settings.dailyCalorieGoal;
+                // Calculate and update scores
+                const calorieRatio = this.settings.dailyCalorieGoal > 0 ? this.dailyData.calories / this.settings.dailyCalorieGoal : 0;
                 const nutritionScore = Math.max(0, Math.min(100, 100 - Math.abs(calorieRatio - 1) * 100));
                 this.elements.nutritionScore.textContent = `${Math.round(nutritionScore)}%`;
+                this.elements.nutritionBar.style.width = `${Math.round(nutritionScore)}%`;
                 
-                const sleepScore = Math.min(100, (this.dailyData.sleep / 8) * 100);
+                // Activity score based on exercise completion
+                const today = new Date().toDateString();
+                const todayHabits = this.weeklyHabits[today];
+                let activityScore = 0;
+                if (todayHabits && todayHabits.exercise) {
+                    activityScore = Math.min(100, (todayHabits.exercise.completed / todayHabits.exercise.target) * 100);
+                }
+                this.elements.activityScore.textContent = `${Math.round(activityScore)}%`;
+                this.elements.activityBar.style.width = `${Math.round(activityScore)}%`;
+                
+                // Sleep score with color coding
+                let sleepScore = 0;
+                let sleepColor = 'bg-gray-500';
+                if (this.dailyData.sleep > 0) {
+                    if (this.dailyData.sleep >= 8) {
+                        sleepScore = 100;
+                        sleepColor = 'bg-green-500';
+                    } else if (this.dailyData.sleep >= 6) {
+                        sleepScore = 75;
+                        sleepColor = 'bg-orange-500';
+                    } else {
+                        sleepScore = 40;
+                        sleepColor = 'bg-red-500';
+                    }
+                }
                 this.elements.sleepScore.textContent = `${Math.round(sleepScore)}%`;
+                this.elements.sleepBar.style.width = `${Math.round(sleepScore)}%`;
+                this.elements.sleepBar.className = `h-3 rounded-full transition-all duration-300 ${sleepColor}`;
                 
+                // Productivity score based on check-ins
                 const productivityScore = Math.min(100, (checkinsToday / 16) * 100);
                 this.elements.productivityScore.textContent = `${Math.round(productivityScore)}%`;
+                this.elements.productivityBar.style.width = `${Math.round(productivityScore)}%`;
             }
         }
 
