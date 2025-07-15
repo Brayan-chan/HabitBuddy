@@ -18,14 +18,46 @@
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiMxMEI5ODEiLz4KPHN2ZyB4PSI4IiB5PSI4IiB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0id2hpdGUiPgo8cGF0aCBkPSJNMTIgMkM2LjQ4IDIgMiA2LjQ4IDIgMTJzNC40OCAxMCAxMCAxMCAxMC00LjQ4IDEwLTEwUzE3LjUyIDIgMTIgMnpNOSAxMmwyLTIgNCA0TDQgNmwxLjQxLTEuNDFMMTAgMTAuMTd6Ii8+Cjwvc3ZnPgo8L3N2Zz4K">
     
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/marked/marked.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.5/dist/purify.min.js"></script>
     <script type="importmap">
         {
             "imports": {
                 "@google/generative-ai": "https://esm.run/@google/generative-ai"
             }
+        }
+    </script>
+    <!-- Load dependencies first -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/5.1.1/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.5/dist/purify.min.js"></script>
+    
+    <!-- Fallback for marked if external CDN fails -->
+    <script>
+        if (typeof marked === 'undefined') {
+            console.warn('Marked library not loaded, using fallback');
+            window.marked = {
+                parse: function(text) {
+                    // Simple markdown fallback
+                    return text
+                        .replace(/### (.*)/g, '<h3>$1</h3>')
+                        .replace(/## (.*)/g, '<h2>$1</h2>')
+                        .replace(/# (.*)/g, '<h1>$1</h1>')
+                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                        .replace(/\n/g, '<br>');
+                }
+            };
+        }
+        
+        if (typeof DOMPurify === 'undefined') {
+            console.warn('DOMPurify not loaded, using fallback');
+            window.DOMPurify = {
+                sanitize: function(html) {
+                    // Basic sanitization fallback
+                    const div = document.createElement('div');
+                    div.textContent = html;
+                    return div.innerHTML;
+                }
+            };
         }
     </script>
     <script>
@@ -617,21 +649,33 @@
             async registerServiceWorker() {
                 if ('serviceWorker' in navigator) {
                     try {
-                        const registration = await navigator.serviceWorker.register('/sw.js', {
-                            scope: '/'
+                        console.log('Registrando Service Worker...');
+                        const registration = await navigator.serviceWorker.register('./sw.js', {
+                            scope: './'
                         });
                         
                         this.serviceWorkerRegistration = registration;
                         console.log('Service Worker registrado exitosamente:', registration.scope);
+                        
+                        // Wait for the service worker to be ready
+                        await navigator.serviceWorker.ready;
+                        console.log('Service Worker está listo');
                         
                         // Handle updates
                         registration.addEventListener('updatefound', () => {
                             console.log('Nueva versión del Service Worker disponible');
                         });
 
+                        return registration;
+
                     } catch (error) {
                         console.error('Error registrando Service Worker:', error);
+                        console.log('Continuando sin Service Worker');
+                        return null;
                     }
+                } else {
+                    console.log('Service Workers no soportados en este navegador');
+                    return null;
                 }
             }
 
@@ -683,6 +727,10 @@
             }
 
             async show(title, options = {}) {
+                console.log('NotificationManager.show called:', title, options);
+                console.log('Permission:', this.permission);
+                console.log('ServiceWorker registration:', this.serviceWorkerRegistration);
+                
                 if (this.permission !== 'granted') {
                     console.warn('Notificaciones no permitidas');
                     return null;
@@ -690,19 +738,22 @@
 
                 const defaultOptions = {
                     icon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMzIiIGZpbGw9IiMxMEI5ODEiLz4KPHN2ZyB4PSIxNiIgeT0iMTYiIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJ3aGl0ZSI+CjxwYXRoIGQ9Ik0xMiAyQzYuNDggMiAyIDYuNDggMiAxMnM0LjQ4IDEwIDEwIDEwIDEwLTQuNDggMTAtMTBTMTcuNTIgMiAxMiAyek0xMyAxN2gtMnYtNmgydjZ6bTAtOGgtMlY3aDJ2MnoiLz4KPC9zdmc+Cjwvc3ZnPgo=',
-                    badge: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTIiIGZpbGw9IiMxMEI5ODEiLz4KPHN2ZyB4PSI2IiB5PSI2IiB3aWR0aD0iMTIiIGhlaWdodD0iMTIiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0id2hpdGUiPgo8cGF0aCBkPSJNMTIgMkM2LjQ4IDIgMiA2LjQ4IDIgMTJzNC40OCAxMCAxMCAxMCAxMC00LjQ4IDEwLTEwUzE3LjUyIDIgMTIgMnptLTIgMTVsLTUtNSAxLjQxLTEuNDFMMTAgMTQuMTdsNy41OS03LjU5TDE5IDhsLTkgOXoiLz4KPC9zdmc+Cjwvc3ZnPgo=',
+                    badge: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTIiIGZpbGw9IiMxMEI5ODEiLz4KPHN2ZyB4PSI2IiB5PSI2IiB3aWR0aD0iMTIiIGhlaWdodD0iMTIiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0id2hpdGUiPgo8cGF0aCBkPSJNMTIgMkM2LjQ4IDIgMiA2LjQ4IDIgMTJzNC40OCAxMCAxMCAxMCAxMC00LjQ4IDEwLTEwUzE3LjUyIDIgMTIgMnptLTIgMTVsLTUtNSAxLjQxLTEuNDFMMTAgMTQuMTdsNy159IDcuNTlUTE5IDhsLTkgOXoiLz4KPC9zdmc+Cjwvc3ZnPgo=',
                     tag: 'habitbuddy',
                     renotify: true,
-                    requireInteraction: true,
+                    requireInteraction: false,
                     silent: false,
                     ...options
                 };
 
                 try {
-                    // Use Service Worker if available, fallback to regular notification
-                    if (this.serviceWorkerRegistration) {
+                    // Try Service Worker first if available and active
+                    if (this.serviceWorkerRegistration && this.serviceWorkerRegistration.active) {
+                        console.log('Using Service Worker for notification');
                         return await this.serviceWorkerRegistration.showNotification(title, defaultOptions);
                     } else {
+                        // Fallback to regular notification
+                        console.log('Using regular Notification API');
                         const notification = new Notification(title, defaultOptions);
                         
                         // Auto close after 10 seconds if not interactive
@@ -716,7 +767,22 @@
                     }
                 } catch (error) {
                     console.error('Error showing notification:', error);
-                    return null;
+                    // Fallback to regular notification if Service Worker fails
+                    try {
+                        console.log('Fallback to regular notification');
+                        const notification = new Notification(title, defaultOptions);
+                        
+                        if (!defaultOptions.requireInteraction) {
+                            setTimeout(() => {
+                                notification.close();
+                            }, 10000);
+                        }
+
+                        return notification;
+                    } catch (fallbackError) {
+                        console.error('Fallback notification also failed:', fallbackError);
+                        return null;
+                    }
                 }
             }
 
@@ -1542,6 +1608,8 @@ Cuéntame: ¿Cómo te sientes hoy? ¿Qué has hecho hasta ahora?`;
                 const statusElement = this.elements.permissionStatus;
                 const requestBtn = this.elements.requestNotificationPermission;
 
+                console.log('Updating notification status:', permission);
+
                 switch (permission) {
                     case 'granted':
                         statusElement.textContent = '✅ Habilitadas';
@@ -1560,6 +1628,10 @@ Cuéntame: ¿Cómo te sientes hoy? ¿Qué has hecho hasta ahora?`;
                         requestBtn.classList.remove('hidden');
                         break;
                 }
+
+                // Add service worker status
+                const swStatus = this.notificationManager.serviceWorkerRegistration ? 'SW ✅' : 'SW ❌';
+                statusElement.textContent += ` (${swStatus})`;
             }
 
             async requestNotificationPermission() {
@@ -1575,17 +1647,27 @@ Cuéntame: ¿Cómo te sientes hoy? ¿Qué has hecho hasta ahora?`;
             }
 
             testNotification() {
+                console.log('Testing notification...');
+                console.log('Permission status:', this.notificationManager.permission);
+                
                 if (this.notificationManager.permission !== 'granted') {
                     this.addMessage('system', '⚠️ Primero debes habilitar las notificaciones.');
                     return;
                 }
 
-                this.notificationManager.show('🧪 Notificación de Prueba', {
-                    body: '¡Perfecto! Las notificaciones están funcionando correctamente.',
-                    icon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMzIiIGZpbGw9IiMxMEI5ODEiLz4KPHN2ZyB4PSIxNiIgeT0iMTYiIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJ3aGl0ZSI+CjxwYXRoIGQ9Ik0xMiAyQzYuNDggMiAyIDYuNDggMiAxMnM0LjQ4IDEwIDEwIDEwIDEwLTQuNDggMTAtMTBTMTcuNTIgMiAxMiAyek05IDEybDItMiA0IDRMNCA2bDEuNDEtMS40MUwxMCAxMC4xN3oiLz4KPC9zdmc+Cjwvc3ZnPgo='
-                });
-
-                this.addMessage('system', '🧪 Notificación de prueba enviada.');
+                try {
+                    const result = this.notificationManager.show('🧪 Notificación de Prueba', {
+                        body: '¡Perfecto! Las notificaciones están funcionando correctamente.',
+                        requireInteraction: false,
+                        tag: 'test-notification'
+                    });
+                    
+                    console.log('Notification result:', result);
+                    this.addMessage('system', '🧪 Notificación de prueba enviada. Revisa la barra de notificaciones de tu sistema.');
+                } catch (error) {
+                    console.error('Error al enviar notificación de prueba:', error);
+                    this.addMessage('system', '❌ Error al enviar la notificación: ' + error.message);
+                }
             }
 
             scheduleNotifications() {
@@ -2134,7 +2216,22 @@ Formato de respuesta:
                 }`;
 
                 if (role === 'assistant') {
-                    bubbleDiv.innerHTML = DOMPurify.sanitize(marked.parse(content));
+                    // Check if marked and DOMPurify are available
+                    if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
+                        try {
+                            bubbleDiv.innerHTML = DOMPurify.sanitize(marked.parse(content));
+                        } catch (error) {
+                            console.warn('Error parsing markdown:', error);
+                            bubbleDiv.textContent = content;
+                        }
+                    } else {
+                        // Fallback: simple markdown-like formatting
+                        const simpleFormatted = content
+                            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                            .replace(/\n/g, '<br>');
+                        bubbleDiv.innerHTML = simpleFormatted;
+                    }
                 } else {
                     bubbleDiv.textContent = content;
                 }
@@ -2299,8 +2396,27 @@ Formato de respuesta:
             }
         }
 
-        // Initialize the application
-        window.app = new HabitBuddyApp();
+        // Simple initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM ready, initializing HabitBuddy...');
+            
+            try {
+                window.app = new HabitBuddyApp();
+                console.log('HabitBuddy initialized successfully');
+            } catch (error) {
+                console.error('Error initializing HabitBuddy:', error);
+                // Show error message to user
+                document.body.innerHTML = `
+                    <div style="padding: 20px; text-align: center; font-family: Arial, sans-serif;">
+                        <h1 style="color: #ef4444;">Error al cargar HabitBuddy</h1>
+                        <p>Hubo un problema al cargar la aplicación. Por favor, recarga la página.</p>
+                        <button onclick="location.reload()" style="padding: 10px 20px; background: #10b981; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                            Recargar Página
+                        </button>
+                    </div>
+                `;
+            }
+        });
 
     </script>
 </body>
