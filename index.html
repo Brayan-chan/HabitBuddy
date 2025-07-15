@@ -1,0 +1,1597 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HabitBuddy - Tu Compañero de Hábitos con IA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.5/dist/purify.min.js"></script>
+    <script type="importmap">
+        {
+            "imports": {
+                "@google/generative-ai": "https://esm.run/@google/generative-ai"
+            }
+        }
+    </script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#10B981',
+                        'primary-dark': '#059669',
+                        secondary: '#3B82F6',
+                        accent: '#F59E0B',
+                        danger: '#EF4444'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="h-full bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-gray-100">
+    <div class="min-h-full flex flex-col">
+        <!-- Header -->
+        <header class="bg-white dark:bg-gray-800 shadow-lg border-b border-gray-200 dark:border-gray-700">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center py-4">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex-shrink-0">
+                            <h1 class="text-2xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+                                🌱 HabitBuddy
+                            </h1>
+                        </div>
+                        <div class="hidden md:block">
+                            <div class="text-sm text-gray-600 dark:text-gray-400">
+                                Tu compañero inteligente para transformar tus hábitos
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <!-- Current Time -->
+                        <div class="text-center">
+                            <div id="currentTime" class="text-lg font-semibold text-primary">--:--</div>
+                            <div class="text-xs text-gray-500">Hora actual</div>
+                        </div>
+                        <!-- Next Check -->
+                        <div class="text-center hidden md:block">
+                            <div id="nextCheck" class="text-sm font-medium text-gray-700 dark:text-gray-300">--:--</div>
+                            <div class="text-xs text-gray-500">Próximo check</div>
+                        </div>
+                        <button id="settingsBtn" class="p-2 rounded-md bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- API Key Alert (if not configured) -->
+        <div id="apiKeyAlert" class="bg-yellow-50 dark:bg-yellow-900/20 border-b border-yellow-200 dark:border-yellow-800">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <svg class="h-5 w-5 text-yellow-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span class="text-sm text-yellow-800 dark:text-yellow-200">Configura tu API Key de Google Gemini para empezar tu transformación</span>
+                    </div>
+                    <button id="configureApiBtn" class="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-md text-sm transition-colors">
+                        Configurar Ahora
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 h-full">
+                <!-- Left Sidebar - Dashboard & Stats -->
+                <div class="lg:col-span-1 space-y-4">
+                    <!-- Today's Progress -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-semibold mb-4 flex items-center">
+                            <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+                            Progreso de Hoy
+                        </h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm">Check-ins realizados:</span>
+                                <span id="todayCheckins" class="font-semibold text-green-600">0/24</span>
+                            </div>
+                            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                <div id="checkinProgress" class="bg-green-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 text-sm">
+                                <div class="text-center p-2 bg-blue-50 dark:bg-blue-900/20 rounded">
+                                    <div class="font-semibold text-blue-600" id="caloriesConsumed">0</div>
+                                    <div class="text-xs">Calorías</div>
+                                </div>
+                                <div class="text-center p-2 bg-purple-50 dark:bg-purple-900/20 rounded">
+                                    <div class="font-semibold text-purple-600" id="sleepHours">0</div>
+                                    <div class="text-xs">Horas sueño</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Current Goals -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-semibold mb-4">🎯 Objetivos Actuales</h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-sm">Estado nutricional:</span>
+                                <span id="nutritionState" class="text-sm font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded">
+                                    No definido
+                                </span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-sm">Meta diaria:</span>
+                                <span id="dailyCalorieGoal" class="text-sm font-medium">2000 kcal</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-sm">Peso objetivo:</span>
+                                <span id="weightGoal" class="text-sm font-medium">-- kg</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Active Challenges -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-semibold mb-4">🏆 Retos Activos</h3>
+                        <div id="activeChallenges" class="space-y-2">
+                            <div class="text-sm text-gray-500 text-center py-4">
+                                No tienes retos activos
+                            </div>
+                        </div>
+                        <button id="addChallengeBtn" class="w-full mt-3 px-4 py-2 bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white rounded-lg text-sm transition-all">
+                            + Crear Reto
+                        </button>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-semibold mb-4">⚡ Acciones Rápidas</h3>
+                        <div class="space-y-2">
+                            <button class="quick-action w-full px-3 py-2 text-left text-sm bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-md transition-colors" data-action="meal">
+                                🍽️ Registrar comida
+                            </button>
+                            <button class="quick-action w-full px-3 py-2 text-left text-sm bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-md transition-colors" data-action="water">
+                                💧 Beber agua
+                            </button>
+                            <button class="quick-action w-full px-3 py-2 text-left text-sm bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-md transition-colors" data-action="exercise">
+                                🏃‍♂️ Hacer ejercicio
+                            </button>
+                            <button class="quick-action w-full px-3 py-2 text-left text-sm bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-md transition-colors" data-action="mood">
+                                😊 Estado de ánimo
+                            </button>
+                            <button class="quick-action w-full px-3 py-2 text-left text-sm bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-md transition-colors" data-action="productivity">
+                                📈 Revisar productividad
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Center - Main Chat -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg h-full flex flex-col">
+                        <!-- Chat Header -->
+                        <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center">
+                                        <span class="text-white font-bold">HB</span>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-semibold">HabitBuddy</h3>
+                                        <p class="text-sm text-gray-500 dark:text-gray-400" id="buddyStatus">Tu compañero de hábitos saludables</p>
+                                    </div>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <button id="imageUploadBtn" class="p-2 rounded-md bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors" title="Subir imagen de comida">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                        </svg>
+                                    </button>
+                                    <input type="file" id="fileInput" class="hidden" accept="image/*" multiple>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Chat Messages -->
+                        <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-4 min-h-96">
+                            <div class="flex justify-center">
+                                <div class="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-4 py-2 rounded-lg text-sm max-w-md text-center">
+                                    ¡Hola! Soy tu HabitBuddy. Estoy aquí para ayudarte a crear hábitos saludables y transformar tu vida. Cuéntame sobre tus objetivos y empecemos juntos este viaje. 🌱✨
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Hourly Check Notification -->
+                        <div id="hourlyCheckPanel" class="border-t border-gray-200 dark:border-gray-700 p-4 bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/20 dark:to-green-900/20 hidden">
+                            <div class="flex items-center justify-between mb-3">
+                                <h4 class="font-semibold text-blue-800 dark:text-blue-300">⏰ Check-in de las <span id="checkHour"></span></h4>
+                                <button id="skipCheckBtn" class="text-sm text-gray-500 hover:text-gray-700">Omitir</button>
+                            </div>
+                            <div id="checkQuestions" class="text-sm text-gray-700 dark:text-gray-300 space-y-2">
+                                <!-- Check questions will be populated here -->
+                            </div>
+                            <button id="startCheckBtn" class="w-full mt-3 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm transition-colors">
+                                Hacer Check-in
+                            </button>
+                        </div>
+
+                        <!-- Input Area -->
+                        <div class="p-4 border-t border-gray-200 dark:border-gray-700">
+                            <div class="flex space-x-3">
+                                <input type="text" id="messageInput" placeholder="Cuéntame qué comiste, cómo te sientes, qué hiciste..." 
+                                       class="flex-1 px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-white">
+                                <button id="sendBtn" class="px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors flex items-center">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Sidebar - Detailed Stats & Tools -->
+                <div class="lg:col-span-1 space-y-4">
+                    <!-- Health Metrics -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4">
+                        <h3 class="font-semibold mb-3">📊 Métricas de Salud</h3>
+                        <div class="space-y-3">
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span>Nutrición</span>
+                                    <span id="nutritionScore">85%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                    <div class="bg-green-500 h-2 rounded-full" style="width: 85%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span>Actividad Física</span>
+                                    <span id="activityScore">60%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                    <div class="bg-blue-500 h-2 rounded-full" style="width: 60%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span>Sueño</span>
+                                    <span id="sleepScore">70%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                    <div class="bg-purple-500 h-2 rounded-full" style="width: 70%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span>Productividad</span>
+                                    <span id="productivityScore">45%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                    <div class="bg-yellow-500 h-2 rounded-full" style="width: 45%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Weekly Habits -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4">
+                        <h3 class="font-semibold mb-3">📅 Hábitos Semanales</h3>
+                        <div class="grid grid-cols-7 gap-1 text-xs">
+                            <div class="text-center font-medium">L</div>
+                            <div class="text-center font-medium">M</div>
+                            <div class="text-center font-medium">X</div>
+                            <div class="text-center font-medium">J</div>
+                            <div class="text-center font-medium">V</div>
+                            <div class="text-center font-medium">S</div>
+                            <div class="text-center font-medium">D</div>
+                        </div>
+                        <div id="habitGrid" class="mt-2 space-y-2">
+                            <!-- Habit grid will be populated here -->
+                        </div>
+                    </div>
+
+                    <!-- Food Suggestions -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4">
+                        <h3 class="font-semibold mb-3">🍽️ Sugerencias de Comida</h3>
+                        <div class="space-y-3">
+                            <textarea id="ingredientsInput" rows="3" placeholder="Escribe los ingredientes que tienes disponible..."
+                                      class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-700 dark:text-white resize-none"></textarea>
+                            <button id="suggestMealBtn" class="w-full px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm transition-colors">
+                                🧑‍🍳 Sugerir Platillo
+                            </button>
+                        </div>
+                        <div id="mealSuggestion" class="mt-3 hidden">
+                            <!-- Meal suggestions will appear here -->
+                        </div>
+                    </div>
+
+                    <!-- Insights -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4">
+                        <h3 class="font-semibold mb-3">💡 Insights del Día</h3>
+                        <div id="dailyInsights" class="text-sm text-gray-600 dark:text-gray-400 space-y-2">
+                            <p>Completa tu primer check-in para obtener insights personalizados.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Settings Modal -->
+        <div id="settingsModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-lg w-full mx-4 p-6 max-h-90vh overflow-y-auto">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-semibold">⚙️ Configuración</h3>
+                    <button id="closeSettingsBtn" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="space-y-6">
+                    <!-- API Key -->
+                    <div>
+                        <label class="block text-sm font-medium mb-2">API Key de Google Gemini *</label>
+                        <div class="space-y-2">
+                            <div class="flex space-x-2">
+                                <input type="password" id="apiKeyInput" placeholder="Ingresa tu API Key" 
+                                       class="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-700 dark:text-white">
+                                <button id="toggleApiKeyBtn" class="px-3 py-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md">
+                                    👁️
+                                </button>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button id="saveApiKeyBtn" class="flex-1 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md text-sm transition-colors">
+                                    Guardar
+                                </button>
+                                <button id="removeApiKeyBtn" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md text-sm transition-colors hidden">
+                                    Eliminar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Personal Info -->
+                    <div>
+                        <h4 class="text-lg font-medium mb-3">👤 Información Personal</h4>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Edad</label>
+                                <input type="number" id="ageInput" placeholder="25" min="10" max="100"
+                                       class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-700 dark:text-white">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Sexo</label>
+                                <select id="genderSelect" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-700 dark:text-white">
+                                    <option value="">Seleccionar</option>
+                                    <option value="male">Masculino</option>
+                                    <option value="female">Femenino</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Peso actual (kg)</label>
+                                <input type="number" id="weightInput" placeholder="70" min="30" max="300" step="0.1"
+                                       class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-700 dark:text-white">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Altura (cm)</label>
+                                <input type="number" id="heightInput" placeholder="175" min="100" max="250"
+                                       class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-700 dark:text-white">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Goals -->
+                    <div>
+                        <h4 class="text-lg font-medium mb-3">🎯 Objetivos</h4>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Estado nutricional objetivo</label>
+                                <select id="nutritionGoalSelect" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-700 dark:text-white">
+                                    <option value="maintenance">Mantenimiento</option>
+                                    <option value="deficit">Déficit calórico (perder peso)</option>
+                                    <option value="surplus">Superávit calórico (ganar peso)</option>
+                                    <option value="recomp">Recomposición corporal</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Peso objetivo (kg)</label>
+                                <input type="number" id="targetWeightInput" placeholder="65" min="30" max="300" step="0.1"
+                                       class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-700 dark:text-white">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Nivel de actividad</label>
+                                <select id="activityLevelSelect" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-700 dark:text-white">
+                                    <option value="sedentary">Sedentario</option>
+                                    <option value="light">Actividad ligera</option>
+                                    <option value="moderate">Actividad moderada</option>
+                                    <option value="active">Muy activo</option>
+                                    <option value="extreme">Extremadamente activo</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notifications -->
+                    <div>
+                        <h4 class="text-lg font-medium mb-3">🔔 Notificaciones</h4>
+                        <div class="space-y-2">
+                            <div class="flex items-center space-x-2">
+                                <input type="checkbox" id="enableHourlyChecks" class="rounded" checked>
+                                <label for="enableHourlyChecks" class="text-sm">Check-ins por hora</label>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <input type="checkbox" id="enableMealReminders" class="rounded" checked>
+                                <label for="enableMealReminders" class="text-sm">Recordatorios de comidas</label>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <input type="checkbox" id="enableChallenges" class="rounded" checked>
+                                <label for="enableChallenges" class="text-sm">Retos automáticos</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-3">
+                        <button id="saveProfileBtn" class="w-full px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md text-sm transition-colors">
+                            💾 Guardar Perfil
+                        </button>
+                        <button id="resetDataBtn" class="w-full px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md text-sm transition-colors">
+                            🗑️ Resetear Todos los Datos
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Challenge Modal -->
+        <div id="challengeModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full mx-4 p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold">🏆 Nuevo Reto</h3>
+                    <button id="closeChallengeBtn" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div id="challengeContent" class="space-y-4">
+                    <!-- Challenge content will be populated here -->
+                </div>
+
+                <div class="flex space-x-3 mt-6">
+                    <button id="acceptChallengeBtn" class="flex-1 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md transition-colors">
+                        Aceptar Reto
+                    </button>
+                    <button id="declineChallengeBtn" class="flex-1 px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-md transition-colors">
+                        Rechazar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { GoogleGenerativeAI } from "@google/generative-ai";
+
+        // Dark mode detection
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+
+        // Application State
+        class HabitBuddyApp {
+            constructor() {
+                this.geminiModel = null;
+                this.conversationHistory = [];
+                this.userProfile = {
+                    age: 25,
+                    gender: '',
+                    weight: 70,
+                    height: 175,
+                    targetWeight: 65,
+                    nutritionGoal: 'maintenance',
+                    activityLevel: 'moderate',
+                    allergies: [],
+                    preferences: [],
+                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+                };
+                
+                this.dailyData = {
+                    date: new Date().toDateString(),
+                    checkins: [],
+                    meals: [],
+                    calories: 0,
+                    water: 0,
+                    sleep: 0,
+                    exercise: [],
+                    mood: [],
+                    productivity: 0,
+                    challenges: [],
+                    insights: []
+                };
+                
+                this.settings = {
+                    enableHourlyChecks: true,
+                    enableMealReminders: true,
+                    enableChallenges: true,
+                    dailyCalorieGoal: 2000
+                };
+
+                this.habits = [
+                    { name: 'Beber agua', icon: '💧', target: 8, current: 0 },
+                    { name: 'Ejercicio', icon: '🏃‍♂️', target: 1, current: 0 },
+                    { name: 'Dormir 8h', icon: '😴', target: 1, current: 0 },
+                    { name: 'Meditar', icon: '🧘‍♂️', target: 1, current: 0 },
+                    { name: 'Leer', icon: '📚', target: 1, current: 0 }
+                ];
+
+                this.hourlyCheckTimer = null;
+                this.timeUpdateTimer = null;
+                
+                this.initializeApp();
+            }
+
+            async initializeApp() {
+                this.loadUserData();
+                this.initializeElements();
+                this.bindEvents();
+                this.startTimeUpdates();
+                this.checkDailyReset();
+                
+                const savedApiKey = localStorage.getItem('habitbuddy_api_key');
+                if (savedApiKey) {
+                    await this.initializeGemini(savedApiKey);
+                    document.getElementById('apiKeyInput').value = savedApiKey;
+                    document.getElementById('removeApiKeyBtn').classList.remove('hidden');
+                    document.getElementById('apiKeyAlert').classList.add('hidden');
+                    this.startHourlyChecks();
+                } else {
+                    this.showApiKeyAlert();
+                }
+                
+                this.updateUI();
+                this.calculateDailyCalorieGoal();
+            }
+
+            loadUserData() {
+                const savedProfile = localStorage.getItem('habitbuddy_profile');
+                const savedDaily = localStorage.getItem('habitbuddy_daily');
+                const savedSettings = localStorage.getItem('habitbuddy_settings');
+                const savedHistory = localStorage.getItem('habitbuddy_history');
+                const savedHabits = localStorage.getItem('habitbuddy_habits');
+
+                if (savedProfile) {
+                    this.userProfile = { ...this.userProfile, ...JSON.parse(savedProfile) };
+                }
+                
+                if (savedDaily) {
+                    const data = JSON.parse(savedDaily);
+                    // Check if it's today's data
+                    if (data.date === new Date().toDateString()) {
+                        this.dailyData = { ...this.dailyData, ...data };
+                    }
+                }
+                
+                if (savedSettings) {
+                    this.settings = { ...this.settings, ...JSON.parse(savedSettings) };
+                }
+
+                if (savedHistory) {
+                    this.conversationHistory = JSON.parse(savedHistory);
+                }
+
+                if (savedHabits) {
+                    this.habits = JSON.parse(savedHabits);
+                }
+            }
+
+            saveUserData() {
+                localStorage.setItem('habitbuddy_profile', JSON.stringify(this.userProfile));
+                localStorage.setItem('habitbuddy_daily', JSON.stringify(this.dailyData));
+                localStorage.setItem('habitbuddy_settings', JSON.stringify(this.settings));
+                localStorage.setItem('habitbuddy_history', JSON.stringify(this.conversationHistory));
+                localStorage.setItem('habitbuddy_habits', JSON.stringify(this.habits));
+            }
+
+            checkDailyReset() {
+                const today = new Date().toDateString();
+                if (this.dailyData.date !== today) {
+                    // Reset daily data for new day
+                    this.dailyData = {
+                        date: today,
+                        checkins: [],
+                        meals: [],
+                        calories: 0,
+                        water: 0,
+                        sleep: 0,
+                        exercise: [],
+                        mood: [],
+                        productivity: 0,
+                        challenges: [],
+                        insights: []
+                    };
+                    
+                    // Reset habit progress
+                    this.habits.forEach(habit => {
+                        habit.current = 0;
+                    });
+                    
+                    this.saveUserData();
+                }
+            }
+
+            initializeElements() {
+                this.elements = {
+                    // Time elements
+                    currentTime: document.getElementById('currentTime'),
+                    nextCheck: document.getElementById('nextCheck'),
+                    
+                    // Progress elements
+                    todayCheckins: document.getElementById('todayCheckins'),
+                    checkinProgress: document.getElementById('checkinProgress'),
+                    caloriesConsumed: document.getElementById('caloriesConsumed'),
+                    sleepHours: document.getElementById('sleepHours'),
+                    
+                    // Goals
+                    nutritionState: document.getElementById('nutritionState'),
+                    dailyCalorieGoal: document.getElementById('dailyCalorieGoal'),
+                    weightGoal: document.getElementById('weightGoal'),
+                    
+                    // Chat elements
+                    chatMessages: document.getElementById('chatMessages'),
+                    messageInput: document.getElementById('messageInput'),
+                    sendBtn: document.getElementById('sendBtn'),
+                    buddyStatus: document.getElementById('buddyStatus'),
+                    
+                    // File upload
+                    imageUploadBtn: document.getElementById('imageUploadBtn'),
+                    fileInput: document.getElementById('fileInput'),
+                    
+                    // Hourly check
+                    hourlyCheckPanel: document.getElementById('hourlyCheckPanel'),
+                    checkHour: document.getElementById('checkHour'),
+                    checkQuestions: document.getElementById('checkQuestions'),
+                    startCheckBtn: document.getElementById('startCheckBtn'),
+                    skipCheckBtn: document.getElementById('skipCheckBtn'),
+                    
+                    // API Key alert
+                    apiKeyAlert: document.getElementById('apiKeyAlert'),
+                    configureApiBtn: document.getElementById('configureApiBtn'),
+                    
+                    // Settings modal
+                    settingsBtn: document.getElementById('settingsBtn'),
+                    settingsModal: document.getElementById('settingsModal'),
+                    closeSettingsBtn: document.getElementById('closeSettingsBtn'),
+                    apiKeyInput: document.getElementById('apiKeyInput'),
+                    toggleApiKeyBtn: document.getElementById('toggleApiKeyBtn'),
+                    saveApiKeyBtn: document.getElementById('saveApiKeyBtn'),
+                    removeApiKeyBtn: document.getElementById('removeApiKeyBtn'),
+                    
+                    // Profile inputs
+                    ageInput: document.getElementById('ageInput'),
+                    genderSelect: document.getElementById('genderSelect'),
+                    weightInput: document.getElementById('weightInput'),
+                    heightInput: document.getElementById('heightInput'),
+                    targetWeightInput: document.getElementById('targetWeightInput'),
+                    nutritionGoalSelect: document.getElementById('nutritionGoalSelect'),
+                    activityLevelSelect: document.getElementById('activityLevelSelect'),
+                    
+                    // Settings checkboxes
+                    enableHourlyChecks: document.getElementById('enableHourlyChecks'),
+                    enableMealReminders: document.getElementById('enableMealReminders'),
+                    enableChallenges: document.getElementById('enableChallenges'),
+                    
+                    // Actions
+                    saveProfileBtn: document.getElementById('saveProfileBtn'),
+                    resetDataBtn: document.getElementById('resetDataBtn'),
+                    
+                    // Quick actions
+                    quickActions: document.querySelectorAll('.quick-action'),
+                    
+                    // Food suggestions
+                    ingredientsInput: document.getElementById('ingredientsInput'),
+                    suggestMealBtn: document.getElementById('suggestMealBtn'),
+                    mealSuggestion: document.getElementById('mealSuggestion'),
+                    
+                    // Challenges
+                    activeChallenges: document.getElementById('activeChallenges'),
+                    addChallengeBtn: document.getElementById('addChallengeBtn'),
+                    challengeModal: document.getElementById('challengeModal'),
+                    closeChallengeBtn: document.getElementById('closeChallengeBtn'),
+                    challengeContent: document.getElementById('challengeContent'),
+                    acceptChallengeBtn: document.getElementById('acceptChallengeBtn'),
+                    declineChallengeBtn: document.getElementById('declineChallengeBtn'),
+                    
+                    // Stats
+                    nutritionScore: document.getElementById('nutritionScore'),
+                    activityScore: document.getElementById('activityScore'),
+                    sleepScore: document.getElementById('sleepScore'),
+                    productivityScore: document.getElementById('productivityScore'),
+                    habitGrid: document.getElementById('habitGrid'),
+                    dailyInsights: document.getElementById('dailyInsights')
+                };
+
+                // Set initial values
+                this.populateProfileInputs();
+            }
+
+            populateProfileInputs() {
+                this.elements.ageInput.value = this.userProfile.age;
+                this.elements.genderSelect.value = this.userProfile.gender;
+                this.elements.weightInput.value = this.userProfile.weight;
+                this.elements.heightInput.value = this.userProfile.height;
+                this.elements.targetWeightInput.value = this.userProfile.targetWeight;
+                this.elements.nutritionGoalSelect.value = this.userProfile.nutritionGoal;
+                this.elements.activityLevelSelect.value = this.userProfile.activityLevel;
+                
+                this.elements.enableHourlyChecks.checked = this.settings.enableHourlyChecks;
+                this.elements.enableMealReminders.checked = this.settings.enableMealReminders;
+                this.elements.enableChallenges.checked = this.settings.enableChallenges;
+            }
+
+            bindEvents() {
+                // Message sending
+                this.elements.sendBtn.addEventListener('click', () => this.sendMessage());
+                this.elements.messageInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.sendMessage();
+                });
+
+                // File upload
+                this.elements.imageUploadBtn.addEventListener('click', () => {
+                    this.elements.fileInput.click();
+                });
+                this.elements.fileInput.addEventListener('change', (e) => this.handleFileUpload(e));
+
+                // Hourly checks
+                this.elements.startCheckBtn.addEventListener('click', () => this.startHourlyCheck());
+                this.elements.skipCheckBtn.addEventListener('click', () => this.skipHourlyCheck());
+
+                // API Key
+                this.elements.configureApiBtn.addEventListener('click', () => this.showSettings());
+
+                // Settings
+                this.elements.settingsBtn.addEventListener('click', () => this.showSettings());
+                this.elements.closeSettingsBtn.addEventListener('click', () => this.hideSettings());
+                this.elements.toggleApiKeyBtn.addEventListener('click', () => this.toggleApiKeyVisibility());
+                this.elements.saveApiKeyBtn.addEventListener('click', () => this.saveApiKey());
+                this.elements.removeApiKeyBtn.addEventListener('click', () => this.removeApiKey());
+                this.elements.saveProfileBtn.addEventListener('click', () => this.saveProfile());
+                this.elements.resetDataBtn.addEventListener('click', () => this.resetAllData());
+
+                // Quick actions
+                this.elements.quickActions.forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const action = e.target.dataset.action;
+                        this.handleQuickAction(action);
+                    });
+                });
+
+                // Food suggestions
+                this.elements.suggestMealBtn.addEventListener('click', () => this.suggestMeal());
+
+                // Challenges
+                this.elements.addChallengeBtn.addEventListener('click', () => this.createChallenge());
+                this.elements.closeChallengeBtn.addEventListener('click', () => this.hideChallengeModal());
+                this.elements.acceptChallengeBtn.addEventListener('click', () => this.acceptChallenge());
+                this.elements.declineChallengeBtn.addEventListener('click', () => this.declineChallenge());
+
+                // Click outside modals to close
+                window.addEventListener('click', (e) => {
+                    if (e.target === this.elements.settingsModal) {
+                        this.hideSettings();
+                    }
+                    if (e.target === this.elements.challengeModal) {
+                        this.hideChallengeModal();
+                    }
+                });
+            }
+
+            async initializeGemini(apiKey) {
+                try {
+                    const genAI = new GoogleGenerativeAI(apiKey);
+                    this.geminiModel = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+                    
+                    // Initialize conversation if empty
+                    if (this.conversationHistory.length === 0) {
+                        await this.initializeConversation();
+                    }
+                    
+                    return true;
+                } catch (error) {
+                    console.error("Error initializing Gemini:", error);
+                    throw new Error("API Key inválida o error de inicialización");
+                }
+            }
+
+            async initializeConversation() {
+                const systemPrompt = this.buildSystemPrompt();
+                this.conversationHistory = [
+                    { role: 'system', content: systemPrompt }
+                ];
+                
+                const welcomeMessage = this.getPersonalizedWelcome();
+                this.addMessage('assistant', welcomeMessage);
+                this.conversationHistory.push({ role: 'assistant', content: welcomeMessage });
+                this.saveUserData();
+            }
+
+            buildSystemPrompt() {
+                const currentHour = new Date().getHours();
+                const currentDate = new Date().toLocaleDateString('es-ES', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                });
+
+                return `Eres HabitBuddy, un asistente de IA especializado en transformación de hábitos y bienestar integral. Tu personalidad es motivadora, empática y experta.
+
+INFORMACIÓN DEL USUARIO:
+- Edad: ${this.userProfile.age} años
+- Peso actual: ${this.userProfile.weight} kg
+- Altura: ${this.userProfile.height} cm
+- Peso objetivo: ${this.userProfile.targetWeight} kg
+- Objetivo nutricional: ${this.userProfile.nutritionGoal}
+- Nivel de actividad: ${this.userProfile.activityLevel}
+- Meta calórica diaria: ${this.settings.dailyCalorieGoal} kcal
+
+DATOS DEL DÍA ACTUAL (${currentDate}):
+- Hora actual: ${currentHour}:00
+- Check-ins realizados: ${this.dailyData.checkins.length}
+- Calorías consumidas: ${this.dailyData.calories} kcal
+- Comidas registradas: ${this.dailyData.meals.length}
+- Horas de sueño: ${this.dailyData.sleep}
+
+TUS RESPONSABILIDADES:
+
+1. SEGUIMIENTO HORARIO:
+   - Pregunta cada hora sobre actividades, comidas, estado emocional
+   - Adapta preguntas según la hora (desayuno por la mañana, sueño por la noche)
+   - Registra todo para aprender patrones
+
+2. ANÁLISIS NUTRICIONAL:
+   - Calcula calorías de comidas descritas o fotografiadas
+   - Evalúa si la comida es saludable según sus objetivos
+   - Da consejos basados en déficit/superávit calórico
+   - Sugiere platillos con ingredientes disponibles
+
+3. DETECCIÓN DE MALOS HÁBITOS:
+   - Identifica patrones negativos (azúcar excesivo, poco sueño, procrastinación)
+   - Crea retos personalizados para cambiar estos hábitos
+   - Explica por qué es malo y motiva al cambio
+
+4. ÁREAS DE MEJORA:
+   - Salud física: ejercicio, nutrición, sueño
+   - Salud mental: estrés, ansiedad, mindfulness
+   - Productividad: organización, concentración, metas
+   - Finanzas: gastos, ahorros, presupuesto
+   - Adicciones: identificar y combatir dependencias
+
+5. MOTIVACIÓN Y RETOS:
+   - Crea desafíos específicos cuando detectes malos hábitos
+   - Celebra logros y progreso
+   - Da consejos prácticos y actionables
+   - Mantén un tono positivo pero firme
+
+6. MEMORIA Y APRENDIZAJE:
+   - Recuerda todo lo que el usuario comparte
+   - Aprende de sus patrones y preferencias
+   - Personaliza consejos basados en su historial
+   - Haz seguimiento de objetivos a largo plazo
+
+INSTRUCCIONES DE RESPUESTA:
+- Sé conciso pero completo
+- Haz preguntas específicas para obtener más información
+- Da consejos prácticos y actionables
+- Usa emojis moderadamente para mayor engagement
+- Adapta el tono según la situación (motivador, empático, etc.)
+- Siempre enfócate en el bienestar integral del usuario
+
+Responde como HabitBuddy de manera natural, útil y motivadora.`;
+            }
+
+            getPersonalizedWelcome() {
+                const currentHour = new Date().getHours();
+                let greeting = '';
+                
+                if (currentHour < 6) {
+                    greeting = 'Es muy temprano, ¿todo bien? 🌙';
+                } else if (currentHour < 12) {
+                    greeting = '¡Buenos días! ☀️';
+                } else if (currentHour < 18) {
+                    greeting = '¡Buenas tardes! 🌤️';
+                } else {
+                    greeting = '¡Buenas noches! 🌆';
+                }
+
+                return `${greeting} Soy tu HabitBuddy. Estoy aquí para ayudarte a transformar tus hábitos y alcanzar tus objetivos de salud, productividad y bienestar.
+
+${this.userProfile.weight ? `Veo que tu meta es llegar a ${this.userProfile.targetWeight} kg. ` : ''}¡Juntos vamos a lograrlo! 
+
+Cuéntame: ¿Cómo te sientes hoy? ¿Qué has hecho hasta ahora?`;
+            }
+
+            startTimeUpdates() {
+                this.updateCurrentTime();
+                this.timeUpdateTimer = setInterval(() => {
+                    this.updateCurrentTime();
+                }, 1000);
+            }
+
+            updateCurrentTime() {
+                const now = new Date();
+                const timeString = now.toLocaleTimeString('es-ES', { 
+                    hour: '2-digit', 
+                    minute: '2-digit'
+                });
+                this.elements.currentTime.textContent = timeString;
+
+                // Update next check time
+                const nextHour = new Date(now);
+                nextHour.setHours(nextHour.getHours() + 1);
+                nextHour.setMinutes(0);
+                nextHour.setSeconds(0);
+                
+                const nextCheckString = nextHour.toLocaleTimeString('es-ES', { 
+                    hour: '2-digit', 
+                    minute: '2-digit'
+                });
+                this.elements.nextCheck.textContent = nextCheckString;
+            }
+
+            startHourlyChecks() {
+                if (!this.settings.enableHourlyChecks) return;
+
+                // Check every minute if it's a new hour
+                this.hourlyCheckTimer = setInterval(() => {
+                    const now = new Date();
+                    const currentMinute = now.getMinutes();
+                    const currentHour = now.getHours();
+                    
+                    // Trigger at the top of each hour
+                    if (currentMinute === 0) {
+                        const lastCheckHour = this.dailyData.checkins.length > 0 
+                            ? new Date(this.dailyData.checkins[this.dailyData.checkins.length - 1].timestamp).getHours()
+                            : -1;
+                        
+                        if (currentHour !== lastCheckHour) {
+                            this.triggerHourlyCheck(currentHour);
+                        }
+                    }
+                }, 60000); // Check every minute
+            }
+
+            triggerHourlyCheck(hour) {
+                const questions = this.getHourlyQuestions(hour);
+                this.elements.checkHour.textContent = `${hour}:00`;
+                this.elements.checkQuestions.innerHTML = questions.map(q => `<p>• ${q}</p>`).join('');
+                this.elements.hourlyCheckPanel.classList.remove('hidden');
+            }
+
+            getHourlyQuestions(hour) {
+                const questions = [];
+                
+                if (hour >= 6 && hour < 9) {
+                    questions.push('¿Qué desayunaste?', '¿Cómo dormiste anoche?', '¿Cuáles son tus planes para hoy?');
+                } else if (hour >= 9 && hour < 12) {
+                    questions.push('¿Cómo va tu mañana?', '¿Has tomado agua?', '¿Qué tareas has completado?');
+                } else if (hour >= 12 && hour < 15) {
+                    questions.push('¿Qué almorzaste?', '¿Cómo te sientes de energía?', '¿Has hecho ejercicio?');
+                } else if (hour >= 15 && hour < 18) {
+                    questions.push('¿Cómo va tu tarde?', '¿Has tenido algún snack?', '¿Qué tan productivo has sido?');
+                } else if (hour >= 18 && hour < 21) {
+                    questions.push('¿Qué cenaste?', '¿Cómo fue tu día en general?', '¿Lograste tus objetivos de hoy?');
+                } else {
+                    questions.push('¿Cómo te sientes ahora?', '¿Qué planes tienes para mañana?', '¿A qué hora planeas dormir?');
+                }
+                
+                return questions;
+            }
+
+            async startHourlyCheck() {
+                const hour = new Date().getHours();
+                const checkPrompt = `Es hora de tu check-in de las ${hour}:00. Háblame sobre lo que has hecho en la última hora, qué comiste, cómo te sientes, y cualquier actividad relevante.`;
+                
+                this.elements.messageInput.value = checkPrompt;
+                this.elements.hourlyCheckPanel.classList.add('hidden');
+                
+                // Record the check-in
+                this.dailyData.checkins.push({
+                    hour: hour,
+                    timestamp: new Date().toISOString(),
+                    type: 'hourly'
+                });
+                
+                this.sendMessage();
+                this.updateUI();
+                this.saveUserData();
+            }
+
+            skipHourlyCheck() {
+                this.elements.hourlyCheckPanel.classList.add('hidden');
+                this.addMessage('system', '⏭️ Check-in omitido. ¡Recuerda que el seguimiento consistente es clave para el éxito!');
+            }
+
+            async sendMessage() {
+                const message = this.elements.messageInput.value.trim();
+                if (!message || !this.geminiModel) return;
+
+                this.addMessage('user', message);
+                this.elements.messageInput.value = '';
+                this.updateBuddyStatus('Analizando...');
+
+                try {
+                    // Add user message to history
+                    this.conversationHistory.push({ role: 'user', content: message });
+
+                    const fullPrompt = this.buildFullPrompt(message);
+                    const result = await this.geminiModel.generateContent(fullPrompt);
+                    const response = await result.response;
+                    const text = await response.text();
+
+                    this.addMessage('assistant', text);
+                    this.conversationHistory.push({ role: 'assistant', content: text });
+
+                    // Process response for data extraction
+                    await this.processResponse(text, message);
+
+                    this.updateBuddyStatus('¡Aquí para ayudarte! 💪');
+                    this.saveUserData();
+                    this.updateUI();
+
+                } catch (error) {
+                    console.error('Error sending message:', error);
+                    this.addMessage('system', 'Error al procesar el mensaje. Por favor, verifica tu conexión.');
+                    this.updateBuddyStatus('Error - Intenta de nuevo');
+                }
+            }
+
+            buildFullPrompt(message) {
+                const context = this.conversationHistory
+                    .filter(msg => msg.role !== 'system')
+                    .slice(-10) // Last 10 messages for context
+                    .map(msg => `${msg.role === 'user' ? 'Usuario' : 'HabitBuddy'}: ${msg.content}`)
+                    .join('\n\n');
+
+                return `${this.conversationHistory[0].content}
+
+HISTORIAL RECIENTE:
+${context}
+
+ÚLTIMO MENSAJE DEL USUARIO: ${message}
+
+INSTRUCCIONES ESPECIALES:
+- Si el usuario menciona comida, calcula las calorías aproximadas
+- Si detectas un mal hábito, sugiere un reto específico
+- Si es una consulta sobre ingredientes, sugiere recetas saludables
+- Mantén las respuestas concisas pero útiles
+- Actualiza mentalmente los datos del usuario según lo que comparta
+
+Responde como HabitBuddy de manera útil y motivadora.`;
+            }
+
+            async processResponse(response, userMessage) {
+                // Extract calories if mentioned
+                const calorieMatch = response.match(/(\d+)\s*(?:kcal|calorías)/i);
+                if (calorieMatch) {
+                    const calories = parseInt(calorieMatch[1]);
+                    this.dailyData.calories += calories;
+                    this.dailyData.meals.push({
+                        time: new Date().toISOString(),
+                        description: userMessage,
+                        calories: calories
+                    });
+                }
+
+                // Check for challenge suggestions
+                if (response.toLowerCase().includes('reto') || response.toLowerCase().includes('desafío')) {
+                    this.suggestChallengeFromResponse(response);
+                }
+
+                // Extract sleep hours
+                const sleepMatch = userMessage.match(/dormí\s*(\d+)\s*horas?/i);
+                if (sleepMatch) {
+                    this.dailyData.sleep = parseInt(sleepMatch[1]);
+                }
+
+                // Update insights
+                this.generateDailyInsights();
+            }
+
+            async handleFileUpload(event) {
+                const files = Array.from(event.target.files);
+                if (files.length === 0) return;
+
+                this.updateBuddyStatus('Analizando imagen de comida...');
+
+                for (const file of files) {
+                    try {
+                        const base64Image = await this.fileToGenerativePart(file);
+                        const analysisPrompt = `Analiza esta imagen de comida y proporciona:
+
+1. Identificación detallada de todos los alimentos visibles
+2. Cálculo aproximado de calorías totales
+3. Evaluación nutricional (proteínas, carbohidratos, grasas, vitaminas)
+4. Recomendación sobre si es saludable según el objetivo del usuario (${this.userProfile.nutritionGoal})
+5. Sugerencias de mejora si es necesario
+
+Sé específico con las cantidades y calorías.`;
+
+                        const result = await this.geminiModel.generateContent([analysisPrompt, base64Image]);
+                        const response = await result.response;
+                        const analysis = await response.text();
+
+                        this.addMessage('assistant', `📸 **Análisis de tu comida:**\n\n${analysis}`);
+                        
+                        // Process the analysis for calorie extraction
+                        await this.processResponse(analysis, 'Imagen de comida subida');
+
+                    } catch (error) {
+                        console.error('Error analyzing image:', error);
+                        this.addMessage('system', `Error al analizar la imagen: ${file.name}`);
+                    }
+                }
+
+                this.updateBuddyStatus('¡Aquí para ayudarte! 💪');
+                this.updateUI();
+                event.target.value = ''; // Reset file input
+            }
+
+            fileToGenerativePart(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        const base64Data = reader.result.split(',')[1];
+                        resolve({
+                            inlineData: {
+                                data: base64Data,
+                                mimeType: file.type
+                            }
+                        });
+                    };
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            handleQuickAction(action) {
+                const actions = {
+                    'meal': '🍽️ Acabo de comer: ',
+                    'water': '💧 Me tomé un vaso de agua',
+                    'exercise': '🏃‍♂️ Hice ejercicio: ',
+                    'mood': '😊 Mi estado de ánimo ahora es: ',
+                    'productivity': '📈 Mi nivel de productividad ha sido: '
+                };
+
+                if (actions[action]) {
+                    this.elements.messageInput.value = actions[action];
+                    this.elements.messageInput.focus();
+                    
+                    if (action === 'water') {
+                        this.sendMessage();
+                    }
+                }
+            }
+
+            async suggestMeal() {
+                const ingredients = this.elements.ingredientsInput.value.trim();
+                if (!ingredients) {
+                    this.showError('Por favor ingresa algunos ingredientes disponibles.');
+                    return;
+                }
+
+                this.updateBuddyStatus('Creando sugerencia de platillo...');
+
+                try {
+                    const mealPrompt = `Tengo estos ingredientes disponibles: ${ingredients}
+
+Crea una receta saludable que:
+1. Use la mayoría de estos ingredientes
+2. Sea apropiada para mi objetivo: ${this.userProfile.nutritionGoal}
+3. Tenga aproximadamente ${Math.round(this.settings.dailyCalorieGoal / 3)} calorías (para una comida principal)
+4. Sea balanceada nutricionalmente
+5. Sea fácil de preparar
+
+Incluye:
+- Lista de ingredientes con cantidades
+- Pasos de preparación
+- Información nutricional estimada
+- Tiempo de preparación`;
+
+                    const result = await this.geminiModel.generateContent(mealPrompt);
+                    const response = await result.response;
+                    const suggestion = await response.text();
+
+                    this.elements.mealSuggestion.innerHTML = DOMPurify.sanitize(marked.parse(suggestion));
+                    this.elements.mealSuggestion.classList.remove('hidden');
+                    this.elements.ingredientsInput.value = '';
+
+                } catch (error) {
+                    console.error('Error suggesting meal:', error);
+                    this.showError('Error al generar sugerencia de comida.');
+                }
+
+                this.updateBuddyStatus('¡Aquí para ayudarte! 💪');
+            }
+
+            async createChallenge() {
+                if (!this.geminiModel) {
+                    this.showError('Configura tu API Key primero.');
+                    return;
+                }
+
+                try {
+                    const challengePrompt = `Basándote en los datos del usuario y su historial de hábitos, crea un reto personalizado que:
+
+1. Aborde un área de mejora específica
+2. Sea desafiante pero alcanzable
+3. Tenga una duración definida (1-30 días)
+4. Incluya métricas de éxito claras
+5. Sea motivador y divertido
+
+Datos del usuario:
+- Objetivo: ${this.userProfile.nutritionGoal}
+- Nivel de actividad: ${this.userProfile.activityLevel}
+- Calorías consumidas hoy: ${this.dailyData.calories}
+- Check-ins realizados: ${this.dailyData.checkins.length}
+
+Formato de respuesta:
+**Título del Reto:** [nombre atractivo]
+**Duración:** [X días]
+**Objetivo:** [qué se quiere lograr]
+**Reglas:** [2-3 reglas específicas]
+**Recompensa:** [beneficio al completarlo]
+**Métrica de éxito:** [cómo medir el progreso]`;
+
+                    const result = await this.geminiModel.generateContent(challengePrompt);
+                    const response = await result.response;
+                    const challenge = await response.text();
+
+                    this.elements.challengeContent.innerHTML = DOMPurify.sanitize(marked.parse(challenge));
+                    this.currentChallenge = challenge;
+                    this.showChallengeModal();
+
+                } catch (error) {
+                    console.error('Error creating challenge:', error);
+                    this.showError('Error al crear reto.');
+                }
+            }
+
+            suggestChallengeFromResponse(response) {
+                // Auto-trigger challenge modal if response suggests one
+                this.elements.challengeContent.innerHTML = DOMPurify.sanitize(marked.parse(response));
+                this.currentChallenge = response;
+                this.showChallengeModal();
+            }
+
+            acceptChallenge() {
+                if (this.currentChallenge) {
+                    this.dailyData.challenges.push({
+                        content: this.currentChallenge,
+                        accepted: true,
+                        timestamp: new Date().toISOString()
+                    });
+                    
+                    this.addMessage('system', '🏆 ¡Reto aceptado! Te ayudaré a cumplirlo.');
+                    this.updateActiveChallenges();
+                    this.hideChallengeModal();
+                    this.saveUserData();
+                }
+            }
+
+            declineChallenge() {
+                this.addMessage('system', '👍 No hay problema. Cuando estés listo para un reto, avísame.');
+                this.hideChallengeModal();
+            }
+
+            calculateDailyCalorieGoal() {
+                const { weight, height, age, gender, activityLevel, nutritionGoal } = this.userProfile;
+                
+                if (!weight || !height || !age) return;
+
+                // Calculate BMR using Mifflin-St Jeor Equation
+                let bmr;
+                if (gender === 'male') {
+                    bmr = 10 * weight + 6.25 * height - 5 * age + 5;
+                } else {
+                    bmr = 10 * weight + 6.25 * height - 5 * age - 161;
+                }
+
+                // Apply activity multiplier
+                const activityMultipliers = {
+                    'sedentary': 1.2,
+                    'light': 1.375,
+                    'moderate': 1.55,
+                    'active': 1.725,
+                    'extreme': 1.9
+                };
+
+                const tdee = bmr * (activityMultipliers[activityLevel] || 1.55);
+
+                // Adjust for nutrition goal
+                let calorieGoal;
+                switch (nutritionGoal) {
+                    case 'deficit':
+                        calorieGoal = tdee - 500; // 500 calorie deficit
+                        break;
+                    case 'surplus':
+                        calorieGoal = tdee + 300; // 300 calorie surplus
+                        break;
+                    case 'recomp':
+                        calorieGoal = tdee - 200; // Slight deficit for recomp
+                        break;
+                    default:
+                        calorieGoal = tdee;
+                }
+
+                this.settings.dailyCalorieGoal = Math.round(calorieGoal);
+                this.saveUserData();
+            }
+
+            generateDailyInsights() {
+                const insights = [];
+                const calorieGoal = this.settings.dailyCalorieGoal;
+                const consumed = this.dailyData.calories;
+
+                if (consumed > calorieGoal * 1.2) {
+                    insights.push('⚠️ Has superado tu meta calórica significativamente');
+                } else if (consumed < calorieGoal * 0.8) {
+                    insights.push('📉 Estás por debajo de tu meta calórica');
+                } else {
+                    insights.push('✅ Vas bien con tu meta calórica');
+                }
+
+                if (this.dailyData.checkins.length < 8) {
+                    insights.push('📱 Intenta hacer más check-ins para mejor seguimiento');
+                }
+
+                if (this.dailyData.sleep < 7) {
+                    insights.push('😴 Necesitas dormir más para mejor recuperación');
+                }
+
+                this.elements.dailyInsights.innerHTML = insights.map(insight => 
+                    `<p class="text-sm">${insight}</p>`
+                ).join('');
+            }
+
+            updateActiveChallenges() {
+                const activeChallenges = this.dailyData.challenges.filter(c => c.accepted);
+                
+                if (activeChallenges.length === 0) {
+                    this.elements.activeChallenges.innerHTML = `
+                        <div class="text-sm text-gray-500 text-center py-4">
+                            No tienes retos activos
+                        </div>
+                    `;
+                } else {
+                    this.elements.activeChallenges.innerHTML = activeChallenges.map(challenge => `
+                        <div class="bg-gradient-to-r from-green-100 to-blue-100 dark:from-green-900 dark:to-blue-900 p-3 rounded-lg">
+                            <div class="text-sm font-medium line-clamp-2">${challenge.content.split('\n')[0].replace(/\*+/g, '')}</div>
+                            <div class="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                                ${new Date(challenge.timestamp).toLocaleDateString()}
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            }
+
+            updateHabitGrid() {
+                const days = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+                const today = new Date().getDay();
+                
+                this.elements.habitGrid.innerHTML = this.habits.map(habit => `
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-lg">${habit.icon}</span>
+                            <span class="text-xs font-medium">${habit.name}</span>
+                        </div>
+                        <div class="grid grid-cols-7 gap-1">
+                            ${days.map((day, index) => `
+                                <div class="w-4 h-4 rounded ${index === today ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-600'}"></div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            addMessage(role, content) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'}`;
+
+                const bubbleDiv = document.createElement('div');
+                bubbleDiv.className = `max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                    role === 'user' 
+                        ? 'bg-green-500 text-white' 
+                        : role === 'assistant'
+                        ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100'
+                        : 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200'
+                }`;
+
+                if (role === 'assistant') {
+                    bubbleDiv.innerHTML = DOMPurify.sanitize(marked.parse(content));
+                } else {
+                    bubbleDiv.textContent = content;
+                }
+
+                messageDiv.appendChild(bubbleDiv);
+                this.elements.chatMessages.appendChild(messageDiv);
+                this.elements.chatMessages.scrollTop = this.elements.chatMessages.scrollHeight;
+            }
+
+            showApiKeyAlert() {
+                this.elements.apiKeyAlert.classList.remove('hidden');
+            }
+
+            toggleApiKeyVisibility() {
+                const input = this.elements.apiKeyInput;
+                const btn = this.elements.toggleApiKeyBtn;
+                
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    btn.textContent = '🙈';
+                } else {
+                    input.type = 'password';
+                    btn.textContent = '👁️';
+                }
+            }
+
+            async saveApiKey() {
+                const apiKey = this.elements.apiKeyInput.value.trim();
+                if (!apiKey) {
+                    this.showError('Por favor ingresa una API Key válida.');
+                    return;
+                }
+
+                try {
+                    await this.initializeGemini(apiKey);
+                    localStorage.setItem('habitbuddy_api_key', apiKey);
+                    this.elements.removeApiKeyBtn.classList.remove('hidden');
+                    this.elements.apiKeyAlert.classList.add('hidden');
+                    this.hideSettings();
+                    this.addMessage('system', '✅ API Key guardada correctamente. ¡Comencemos tu transformación!');
+                    this.startHourlyChecks();
+                } catch (error) {
+                    this.showError('Error: API Key inválida. Por favor verifica tu clave.');
+                }
+            }
+
+            removeApiKey() {
+                if (confirm('¿Seguro que quieres eliminar la API Key?')) {
+                    localStorage.removeItem('habitbuddy_api_key');
+                    this.elements.apiKeyInput.value = '';
+                    this.elements.removeApiKeyBtn.classList.add('hidden');
+                    this.geminiModel = null;
+                    this.showApiKeyAlert();
+                    
+                    if (this.hourlyCheckTimer) {
+                        clearInterval(this.hourlyCheckTimer);
+                    }
+                }
+            }
+
+            saveProfile() {
+                this.userProfile.age = parseInt(this.elements.ageInput.value) || 25;
+                this.userProfile.gender = this.elements.genderSelect.value;
+                this.userProfile.weight = parseFloat(this.elements.weightInput.value) || 70;
+                this.userProfile.height = parseInt(this.elements.heightInput.value) || 175;
+                this.userProfile.targetWeight = parseFloat(this.elements.targetWeightInput.value) || 65;
+                this.userProfile.nutritionGoal = this.elements.nutritionGoalSelect.value;
+                this.userProfile.activityLevel = this.elements.activityLevelSelect.value;
+                
+                this.settings.enableHourlyChecks = this.elements.enableHourlyChecks.checked;
+                this.settings.enableMealReminders = this.elements.enableMealReminders.checked;
+                this.settings.enableChallenges = this.elements.enableChallenges.checked;
+
+                this.calculateDailyCalorieGoal();
+                this.saveUserData();
+                this.updateUI();
+                this.addMessage('system', '💾 Perfil actualizado correctamente. Tus objetivos han sido ajustados.');
+                this.hideSettings();
+            }
+
+            resetAllData() {
+                if (confirm('¿Seguro que quieres eliminar TODOS los datos? Esta acción no se puede deshacer.')) {
+                    localStorage.removeItem('habitbuddy_profile');
+                    localStorage.removeItem('habitbuddy_daily');
+                    localStorage.removeItem('habitbuddy_settings');
+                    localStorage.removeItem('habitbuddy_history');
+                    localStorage.removeItem('habitbuddy_habits');
+                    localStorage.removeItem('habitbuddy_api_key');
+                    location.reload();
+                }
+            }
+
+            showSettings() {
+                this.elements.settingsModal.classList.remove('hidden');
+            }
+
+            hideSettings() {
+                this.elements.settingsModal.classList.add('hidden');
+            }
+
+            showChallengeModal() {
+                this.elements.challengeModal.classList.remove('hidden');
+            }
+
+            hideChallengeModal() {
+                this.elements.challengeModal.classList.add('hidden');
+            }
+
+            updateBuddyStatus(status) {
+                this.elements.buddyStatus.textContent = status;
+            }
+
+            showError(message) {
+                this.addMessage('system', `❌ ${message}`);
+            }
+
+            updateUI() {
+                // Update progress
+                const checkinsToday = this.dailyData.checkins.length;
+                const progressPercent = Math.min((checkinsToday / 24) * 100, 100);
+                
+                this.elements.todayCheckins.textContent = `${checkinsToday}/24`;
+                this.elements.checkinProgress.style.width = `${progressPercent}%`;
+                this.elements.caloriesConsumed.textContent = this.dailyData.calories;
+                this.elements.sleepHours.textContent = this.dailyData.sleep;
+
+                // Update goals
+                const goalNames = {
+                    'maintenance': 'Mantenimiento',
+                    'deficit': 'Déficit calórico',
+                    'surplus': 'Superávit calórico',
+                    'recomp': 'Recomposición'
+                };
+                
+                this.elements.nutritionState.textContent = goalNames[this.userProfile.nutritionGoal] || 'No definido';
+                this.elements.dailyCalorieGoal.textContent = `${this.settings.dailyCalorieGoal} kcal`;
+                this.elements.weightGoal.textContent = `${this.userProfile.targetWeight} kg`;
+
+                // Update habit grid
+                this.updateHabitGrid();
+                
+                // Update active challenges
+                this.updateActiveChallenges();
+                
+                // Update scores (simplified calculation)
+                const calorieRatio = this.dailyData.calories / this.settings.dailyCalorieGoal;
+                const nutritionScore = Math.max(0, Math.min(100, 100 - Math.abs(calorieRatio - 1) * 100));
+                this.elements.nutritionScore.textContent = `${Math.round(nutritionScore)}%`;
+                
+                const sleepScore = Math.min(100, (this.dailyData.sleep / 8) * 100);
+                this.elements.sleepScore.textContent = `${Math.round(sleepScore)}%`;
+                
+                const productivityScore = Math.min(100, (checkinsToday / 16) * 100);
+                this.elements.productivityScore.textContent = `${Math.round(productivityScore)}%`;
+            }
+        }
+
+        // Initialize the application
+        window.app = new HabitBuddyApp();
+
+    </script>
+</body>
+</html>
