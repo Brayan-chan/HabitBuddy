@@ -4,6 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HabitBuddy - Tu Compañero de Hábitos con IA</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Meta tags para PWA -->
+    <meta name="theme-color" content="#10B981">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="HabitBuddy">
+    <meta name="description" content="Transforma tus hábitos con inteligencia artificial. Seguimiento personalizado, recordatorios inteligentes y análisis de progreso.">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiMxMEI5ODEiLz4KPHN2ZyB4PSI4IiB5PSI4IiB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0id2hpdGUiPgo8cGF0aCBkPSJNMTIgMkM2LjQ4IDIgMiA2LjQ4IDIgMTJzNC40OCAxMCAxMCAxMCAxMC00LjQ4IDEwLTEwUzE3LjUyIDIgMTIgMnpNOSAxMmwyLTIgNCA0TDQgNmwxLjQxLTEuNDFMMTAgMTAuMTd6Ii8+Cjwvc3ZnPgo8L3N2Zz4K">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.5/dist/purify.min.js"></script>
@@ -30,6 +44,43 @@
             }
         }
     </script>
+    <style>
+        /* Custom scrollbar styles */
+        .overflow-y-auto::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .overflow-y-auto::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .overflow-y-auto::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 3px;
+        }
+        
+        .dark .overflow-y-auto::-webkit-scrollbar-thumb {
+            background: #4b5563;
+        }
+        
+        .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+        
+        .dark .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+        
+        /* Smooth scrolling */
+        .overflow-y-auto {
+            scroll-behavior: smooth;
+        }
+        
+        /* Max height utilities */
+        .max-h-90vh {
+            max-height: 90vh;
+        }
+    </style>
 </head>
 <body class="h-full bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-gray-100">
     <div class="min-h-full flex flex-col">
@@ -330,9 +381,9 @@
         </main>
 
         <!-- Settings Modal -->
-        <div id="settingsModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-lg w-full mx-4 p-6 max-h-90vh overflow-y-auto">
-                <div class="flex justify-between items-center mb-6">
+        <div id="settingsModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden p-4">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
+                <div class="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
                     <h3 class="text-xl font-semibold">⚙️ Configuración</h3>
                     <button id="closeSettingsBtn" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -341,7 +392,8 @@
                     </button>
                 </div>
                 
-                <div class="space-y-6">
+                <div class="overflow-y-auto flex-1 p-6">
+                    <div class="space-y-6">
                     <!-- API Key -->
                     <div>
                         <label class="block text-sm font-medium mb-2">API Key de Google Gemini *</label>
@@ -428,6 +480,18 @@
                     <!-- Notifications -->
                     <div>
                         <h4 class="text-lg font-medium mb-3">🔔 Notificaciones</h4>
+                        
+                        <!-- Notification Permission Status -->
+                        <div id="notificationStatus" class="mb-3 p-3 rounded-lg border">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm">Estado de permisos:</span>
+                                <span id="permissionStatus" class="text-sm font-medium">Verificando...</span>
+                            </div>
+                            <button id="requestNotificationPermission" class="mt-2 w-full px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md text-sm transition-colors hidden">
+                                🔔 Habilitar Notificaciones Push
+                            </button>
+                        </div>
+                        
                         <div class="space-y-2">
                             <div class="flex items-center space-x-2">
                                 <input type="checkbox" id="enableHourlyChecks" class="rounded" checked>
@@ -441,11 +505,27 @@
                                 <input type="checkbox" id="enableChallenges" class="rounded" checked>
                                 <label for="enableChallenges" class="text-sm">Retos automáticos</label>
                             </div>
+                            <div class="flex items-center space-x-2">
+                                <input type="checkbox" id="enableHydrationReminders" class="rounded" checked>
+                                <label for="enableHydrationReminders" class="text-sm">Recordatorios de hidratación</label>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <input type="checkbox" id="enableMotivationalMessages" class="rounded" checked>
+                                <label for="enableMotivationalMessages" class="text-sm">Mensajes motivacionales</label>
+                            </div>
                         </div>
+                        
+                        <!-- Notification Test Button -->
+                        <button id="testNotificationBtn" class="mt-3 w-full px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md text-sm transition-colors">
+                            🧪 Probar Notificación
+                        </button>
                     </div>
-
-                    <!-- Actions -->
-                    <div class="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-3">
+                    </div>
+                </div>
+                
+                <!-- Actions Footer -->
+                <div class="border-t border-gray-200 dark:border-gray-700 p-6 flex-shrink-0">
+                    <div class="space-y-3">
                         <button id="saveProfileBtn" class="w-full px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md text-sm transition-colors">
                             💾 Guardar Perfil
                         </button>
@@ -501,9 +581,395 @@
             }
         });
 
+        // Notification System Class with Service Worker Support
+        class NotificationManager {
+            constructor() {
+                this.permission = 'default';
+                this.scheduledNotifications = new Map();
+                this.notificationQueue = [];
+                this.serviceWorkerRegistration = null;
+                this.init();
+            }
+
+            async init() {
+                // Check if notifications are supported
+                if (!('Notification' in window)) {
+                    console.warn('Este navegador no soporta notificaciones');
+                    return;
+                }
+
+                // Register Service Worker
+                await this.registerServiceWorker();
+
+                // Get current permission status
+                this.permission = Notification.permission;
+                
+                // Load scheduled notifications from localStorage
+                this.loadScheduledNotifications();
+                
+                // Start notification scheduler
+                this.startNotificationScheduler();
+
+                // Listen for messages from Service Worker
+                this.setupServiceWorkerMessageHandler();
+            }
+
+            async registerServiceWorker() {
+                if ('serviceWorker' in navigator) {
+                    try {
+                        const registration = await navigator.serviceWorker.register('/sw.js', {
+                            scope: '/'
+                        });
+                        
+                        this.serviceWorkerRegistration = registration;
+                        console.log('Service Worker registrado exitosamente:', registration.scope);
+                        
+                        // Handle updates
+                        registration.addEventListener('updatefound', () => {
+                            console.log('Nueva versión del Service Worker disponible');
+                        });
+
+                    } catch (error) {
+                        console.error('Error registrando Service Worker:', error);
+                    }
+                }
+            }
+
+            setupServiceWorkerMessageHandler() {
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.addEventListener('message', (event) => {
+                        const { type, action, data } = event.data;
+                        
+                        switch (type) {
+                            case 'NOTIFICATION_CLICK':
+                                this.handleNotificationClick(action, data);
+                                break;
+                            case 'NOTIFICATION_CLOSE':
+                                this.handleNotificationClose(data);
+                                break;
+                        }
+                    });
+                }
+            }
+
+            handleNotificationClick(action, data) {
+                // Emit custom event for the main app to handle
+                window.dispatchEvent(new CustomEvent('notificationClick', {
+                    detail: { action, data }
+                }));
+            }
+
+            handleNotificationClose(data) {
+                console.log('Notificación cerrada:', data);
+            }
+
+            async requestPermission() {
+                if (!('Notification' in window)) {
+                    return false;
+                }
+
+                if (this.permission === 'granted') {
+                    return true;
+                }
+
+                try {
+                    const permission = await Notification.requestPermission();
+                    this.permission = permission;
+                    return permission === 'granted';
+                } catch (error) {
+                    console.error('Error requesting notification permission:', error);
+                    return false;
+                }
+            }
+
+            async show(title, options = {}) {
+                if (this.permission !== 'granted') {
+                    console.warn('Notificaciones no permitidas');
+                    return null;
+                }
+
+                const defaultOptions = {
+                    icon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMzIiIGZpbGw9IiMxMEI5ODEiLz4KPHN2ZyB4PSIxNiIgeT0iMTYiIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJ3aGl0ZSI+CjxwYXRoIGQ9Ik0xMiAyQzYuNDggMiAyIDYuNDggMiAxMnM0LjQ4IDEwIDEwIDEwIDEwLTQuNDggMTAtMTBTMTcuNTIgMiAxMiAyek0xMyAxN2gtMnYtNmgydjZ6bTAtOGgtMlY3aDJ2MnoiLz4KPC9zdmc+Cjwvc3ZnPgo=',
+                    badge: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTIiIGZpbGw9IiMxMEI5ODEiLz4KPHN2ZyB4PSI2IiB5PSI2IiB3aWR0aD0iMTIiIGhlaWdodD0iMTIiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0id2hpdGUiPgo8cGF0aCBkPSJNMTIgMkM2LjQ4IDIgMiA2LjQ4IDIgMTJzNC40OCAxMCAxMCAxMCAxMC00LjQ4IDEwLTEwUzE3LjUyIDIgMTIgMnptLTIgMTVsLTUtNSAxLjQxLTEuNDFMMTAgMTQuMTdsNy41OS03LjU5TDE5IDhsLTkgOXoiLz4KPC9zdmc+Cjwvc3ZnPgo=',
+                    tag: 'habitbuddy',
+                    renotify: true,
+                    requireInteraction: true,
+                    silent: false,
+                    ...options
+                };
+
+                try {
+                    // Use Service Worker if available, fallback to regular notification
+                    if (this.serviceWorkerRegistration) {
+                        return await this.serviceWorkerRegistration.showNotification(title, defaultOptions);
+                    } else {
+                        const notification = new Notification(title, defaultOptions);
+                        
+                        // Auto close after 10 seconds if not interactive
+                        if (!defaultOptions.requireInteraction) {
+                            setTimeout(() => {
+                                notification.close();
+                            }, 10000);
+                        }
+
+                        return notification;
+                    }
+                } catch (error) {
+                    console.error('Error showing notification:', error);
+                    return null;
+                }
+            }
+
+            async schedule(id, title, options, triggerTime) {
+                const notification = {
+                    id,
+                    title,
+                    options,
+                    triggerTime: new Date(triggerTime),
+                    active: true
+                };
+
+                this.scheduledNotifications.set(id, notification);
+                this.saveScheduledNotifications();
+
+                // Send to Service Worker for persistent scheduling
+                if (this.serviceWorkerRegistration && this.serviceWorkerRegistration.active) {
+                    this.serviceWorkerRegistration.active.postMessage({
+                        type: 'SCHEDULE_NOTIFICATION',
+                        data: {
+                            id,
+                            title,
+                            body: options.body || '',
+                            scheduledTime: triggerTime,
+                            options: {
+                                ...options,
+                                icon: options.icon || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMzIiIGZpbGw9IiMxMEI5ODEiLz4KPHN2ZyB4PSIxNiIgeT0iMTYiIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJ3aGl0ZSI+CjxwYXRoIGQ9Ik0xMiAyQzYuNDggMiAyIDYuNDggMiAxMnM0LjQ4IDEwIDEwIDEwIDEwLTQuNDggMTAtMTBTMTcuNTIgMiAxMiAyek0xMyAxN2gtMnYtNmgydjZ6bTAtOGgtMlY3aDJ2MnoiLz4KPC9zdmc+Cjwvc3ZnPgo='
+                            }
+                        }
+                    });
+                }
+            }
+
+            cancelScheduled(id) {
+                this.scheduledNotifications.delete(id);
+                this.saveScheduledNotifications();
+
+                // Cancel in Service Worker
+                if (this.serviceWorkerRegistration && this.serviceWorkerRegistration.active) {
+                    this.serviceWorkerRegistration.active.postMessage({
+                        type: 'CANCEL_NOTIFICATION',
+                        data: { id }
+                    });
+                }
+            }
+
+            startNotificationScheduler() {
+                // Check every minute for scheduled notifications (fallback)
+                setInterval(() => {
+                    const now = new Date();
+                    
+                    for (const [id, notification] of this.scheduledNotifications) {
+                        if (notification.active && now >= notification.triggerTime) {
+                            // Execute the appropriate notification based on type
+                            if (notification.options.mealType) {
+                                this.showMealReminder(notification.options.mealType);
+                            } else if (notification.options.type === 'hydration') {
+                                this.showHydrationReminder();
+                            } else {
+                                this.show(notification.title, notification.options);
+                            }
+                            
+                            // Mark as triggered
+                            notification.active = false;
+                            this.scheduledNotifications.set(id, notification);
+                        }
+                    }
+                    
+                    // Clean up old notifications (older than 24 hours)
+                    const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+                    for (const [id, notification] of this.scheduledNotifications) {
+                        if (notification.triggerTime < yesterday) {
+                            this.scheduledNotifications.delete(id);
+                        }
+                    }
+                    
+                    this.saveScheduledNotifications();
+                }, 60000); // Check every minute
+            }
+
+            saveScheduledNotifications() {
+                const data = Array.from(this.scheduledNotifications.entries()).map(([id, notification]) => [
+                    id,
+                    {
+                        ...notification,
+                        triggerTime: notification.triggerTime.toISOString()
+                    }
+                ]);
+                localStorage.setItem('habitbuddy_scheduled_notifications', JSON.stringify(data));
+            }
+
+            loadScheduledNotifications() {
+                try {
+                    const data = localStorage.getItem('habitbuddy_scheduled_notifications');
+                    if (data) {
+                        const parsed = JSON.parse(data);
+                        this.scheduledNotifications = new Map(
+                            parsed.map(([id, notification]) => [
+                                id,
+                                {
+                                    ...notification,
+                                    triggerTime: new Date(notification.triggerTime)
+                                }
+                            ])
+                        );
+                    }
+                } catch (error) {
+                    console.error('Error loading scheduled notifications:', error);
+                    this.scheduledNotifications = new Map();
+                }
+            }
+
+            // Predefined notification methods for HabitBuddy
+            showMealReminder(mealType) {
+                const mealMessages = {
+                    breakfast: {
+                        title: '🍳 ¡Hora del Desayuno!',
+                        body: 'Es momento de alimentar tu cuerpo. ¿Qué vas a desayunar hoy?',
+                        actions: [
+                            { action: 'log', title: '📝 Registrar comida' },
+                            { action: 'skip', title: '⏭️ Recordar más tarde' }
+                        ]
+                    },
+                    lunch: {
+                        title: '🥗 ¡Hora del Almuerzo!',
+                        body: 'Tu cuerpo necesita energía para la tarde. ¡Registra tu almuerzo!',
+                        actions: [
+                            { action: 'log', title: '📝 Registrar comida' },
+                            { action: 'skip', title: '⏭️ Recordar más tarde' }
+                        ]
+                    },
+                    dinner: {
+                        title: '🍽️ ¡Hora de la Cena!',
+                        body: 'Termina el día con una cena nutritiva. ¿Qué cenaste?',
+                        actions: [
+                            { action: 'log', title: '📝 Registrar comida' },
+                            { action: 'skip', title: '⏭️ Recordar más tarde' }
+                        ]
+                    },
+                    snack: {
+                        title: '🍎 ¡Snack Saludable!',
+                        body: 'Si tienes hambre, elige algo nutritivo. ¡Registra tu snack!',
+                        actions: [
+                            { action: 'log', title: '📝 Registrar snack' },
+                            { action: 'skip', title: '⏭️ No tengo hambre' }
+                        ]
+                    }
+                };
+
+                const meal = mealMessages[mealType];
+                if (meal) {
+                    return this.show(meal.title, {
+                        body: meal.body,
+                        actions: meal.actions,
+                        requireInteraction: true,
+                        tag: `meal-${mealType}`
+                    });
+                }
+            }
+
+            showHourlyCheckReminder() {
+                return this.show('⏰ Check-in de la Hora', {
+                    body: 'Es momento de tu check-in. ¿Cómo vas con tus hábitos?',
+                    actions: [
+                        { action: 'checkin', title: '✅ Hacer check-in' },
+                        { action: 'skip', title: '⏭️ Saltar por ahora' }
+                    ],
+                    requireInteraction: true,
+                    tag: 'hourly-checkin'
+                });
+            }
+
+            showHydrationReminder() {
+                return this.show('💧 ¡Hora de Hidratarte!', {
+                    body: 'Recuerda tomar agua para mantener tu cuerpo funcionando al 100%',
+                    actions: [
+                        { action: 'water', title: '🥤 Bebí agua' },
+                        { action: 'skip', title: '⏭️ Más tarde' }
+                    ],
+                    tag: 'hydration'
+                });
+            }
+
+            showChallengeNotification(challenge) {
+                return this.show('🏆 ¡Nuevo Reto Disponible!', {
+                    body: challenge || 'Tienes un nuevo reto personalizado esperándote',
+                    actions: [
+                        { action: 'accept', title: '💪 Aceptar reto' },
+                        { action: 'view', title: '👀 Ver detalles' }
+                    ],
+                    requireInteraction: true,
+                    tag: 'challenge'
+                });
+            }
+
+            showMotivationalMessage(message) {
+                return this.show('🌟 Mensaje Motivacional', {
+                    body: message || '¡Sigue adelante! Cada pequeño paso cuenta.',
+                    tag: 'motivation'
+                });
+            }
+
+            scheduleDailyReminders() {
+                if (this.permission !== 'granted') return;
+
+                const now = new Date();
+                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+                // Schedule meal reminders
+                const mealTimes = [
+                    { type: 'breakfast', hour: 8, minute: 0 },
+                    { type: 'lunch', hour: 13, minute: 0 },
+                    { type: 'snack', hour: 16, minute: 30 },
+                    { type: 'dinner', hour: 20, minute: 0 }
+                ];
+
+                mealTimes.forEach(meal => {
+                    const mealTime = new Date(today);
+                    mealTime.setHours(meal.hour, meal.minute, 0, 0);
+                    
+                    if (mealTime > now) {
+                        this.schedule(
+                            `meal-${meal.type}-${today.toDateString()}`,
+                            '',
+                            { mealType: meal.type },
+                            mealTime
+                        );
+                    }
+                });
+
+                // Schedule hydration reminders (every 2 hours)
+                for (let hour = 9; hour <= 21; hour += 2) {
+                    const hydrationTime = new Date(today);
+                    hydrationTime.setHours(hour, 0, 0, 0);
+                    
+                    if (hydrationTime > now) {
+                        this.schedule(
+                            `hydration-${hour}-${today.toDateString()}`,
+                            '',
+                            { type: 'hydration' },
+                            hydrationTime
+                        );
+                    }
+                }
+            }
+        }
+
         // Application State
         class HabitBuddyApp {
             constructor() {
+                // Initialize notification manager first
+                this.notificationManager = new NotificationManager();
+                
                 this.geminiModel = null;
                 this.conversationHistory = [];
                 this.userProfile = {
@@ -537,6 +1003,8 @@
                     enableHourlyChecks: true,
                     enableMealReminders: true,
                     enableChallenges: true,
+                    enableHydrationReminders: true,
+                    enableMotivationalMessages: true,
                     dailyCalorieGoal: 2000
                 };
 
@@ -561,6 +1029,14 @@
                 this.startTimeUpdates();
                 this.checkDailyReset();
                 
+                // Initialize notification status
+                setTimeout(() => {
+                    this.updateNotificationStatus();
+                }, 1000);
+                
+                // Setup notification click handler
+                this.setupNotificationClickHandler();
+                
                 const savedApiKey = localStorage.getItem('habitbuddy_api_key');
                 if (savedApiKey) {
                     await this.initializeGemini(savedApiKey);
@@ -574,6 +1050,9 @@
                 
                 this.updateUI();
                 this.calculateDailyCalorieGoal();
+                
+                // Schedule notifications if permissions are granted
+                this.scheduleNotifications();
             }
 
             loadUserData() {
@@ -703,6 +1182,14 @@
                     enableHourlyChecks: document.getElementById('enableHourlyChecks'),
                     enableMealReminders: document.getElementById('enableMealReminders'),
                     enableChallenges: document.getElementById('enableChallenges'),
+                    enableHydrationReminders: document.getElementById('enableHydrationReminders'),
+                    enableMotivationalMessages: document.getElementById('enableMotivationalMessages'),
+                    
+                    // Notification elements
+                    notificationStatus: document.getElementById('notificationStatus'),
+                    permissionStatus: document.getElementById('permissionStatus'),
+                    requestNotificationPermission: document.getElementById('requestNotificationPermission'),
+                    testNotificationBtn: document.getElementById('testNotificationBtn'),
                     
                     // Actions
                     saveProfileBtn: document.getElementById('saveProfileBtn'),
@@ -750,6 +1237,11 @@
                 this.elements.enableHourlyChecks.checked = this.settings.enableHourlyChecks;
                 this.elements.enableMealReminders.checked = this.settings.enableMealReminders;
                 this.elements.enableChallenges.checked = this.settings.enableChallenges;
+                this.elements.enableHydrationReminders.checked = this.settings.enableHydrationReminders;
+                this.elements.enableMotivationalMessages.checked = this.settings.enableMotivationalMessages;
+                
+                // Update notification permission status
+                this.updateNotificationStatus();
             }
 
             bindEvents() {
@@ -798,6 +1290,10 @@
                 this.elements.acceptChallengeBtn.addEventListener('click', () => this.acceptChallenge());
                 this.elements.declineChallengeBtn.addEventListener('click', () => this.declineChallenge());
 
+                // Notification events
+                this.elements.requestNotificationPermission.addEventListener('click', () => this.requestNotificationPermission());
+                this.elements.testNotificationBtn.addEventListener('click', () => this.testNotification());
+
                 // Click outside modals to close
                 window.addEventListener('click', (e) => {
                     if (e.target === this.elements.settingsModal) {
@@ -807,6 +1303,9 @@
                         this.hideChallengeModal();
                     }
                 });
+
+                // Handle notification clicks
+                this.setupNotificationClickHandlers();
             }
 
             async initializeGemini(apiKey) {
@@ -1035,6 +1534,149 @@ Cuéntame: ¿Cómo te sientes hoy? ¿Qué has hecho hasta ahora?`;
                 this.addMessage('system', '⏭️ Check-in omitido. ¡Recuerda que el seguimiento consistente es clave para el éxito!');
             }
 
+            // Notification Management Methods
+            updateNotificationStatus() {
+                if (!this.elements.permissionStatus) return;
+
+                const permission = this.notificationManager.permission;
+                const statusElement = this.elements.permissionStatus;
+                const requestBtn = this.elements.requestNotificationPermission;
+
+                switch (permission) {
+                    case 'granted':
+                        statusElement.textContent = '✅ Habilitadas';
+                        statusElement.className = 'text-sm font-medium text-green-600';
+                        requestBtn.classList.add('hidden');
+                        this.scheduleNotifications();
+                        break;
+                    case 'denied':
+                        statusElement.textContent = '❌ Bloqueadas';
+                        statusElement.className = 'text-sm font-medium text-red-600';
+                        requestBtn.classList.add('hidden');
+                        break;
+                    default:
+                        statusElement.textContent = '⚠️ No configuradas';
+                        statusElement.className = 'text-sm font-medium text-yellow-600';
+                        requestBtn.classList.remove('hidden');
+                        break;
+                }
+            }
+
+            async requestNotificationPermission() {
+                const granted = await this.notificationManager.requestPermission();
+                this.updateNotificationStatus();
+                
+                if (granted) {
+                    this.addMessage('system', '🔔 ¡Notificaciones habilitadas! Ahora recibirás recordatorios para mantener tus hábitos.');
+                    this.scheduleNotifications();
+                } else {
+                    this.addMessage('system', '❌ No se pudieron habilitar las notificaciones. Puedes habilitarlas desde la configuración del navegador.');
+                }
+            }
+
+            testNotification() {
+                if (this.notificationManager.permission !== 'granted') {
+                    this.addMessage('system', '⚠️ Primero debes habilitar las notificaciones.');
+                    return;
+                }
+
+                this.notificationManager.show('🧪 Notificación de Prueba', {
+                    body: '¡Perfecto! Las notificaciones están funcionando correctamente.',
+                    icon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMzIiIGZpbGw9IiMxMEI5ODEiLz4KPHN2ZyB4PSIxNiIgeT0iMTYiIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJ3aGl0ZSI+CjxwYXRoIGQ9Ik0xMiAyQzYuNDggMiAyIDYuNDggMiAxMnM0LjQ4IDEwIDEwIDEwIDEwLTQuNDggMTAtMTBTMTcuNTIgMiAxMiAyek05IDEybDItMiA0IDRMNCA2bDEuNDEtMS40MUwxMCAxMC4xN3oiLz4KPC9zdmc+Cjwvc3ZnPgo='
+                });
+
+                this.addMessage('system', '🧪 Notificación de prueba enviada.');
+            }
+
+            scheduleNotifications() {
+                if (this.notificationManager.permission !== 'granted') return;
+
+                // Schedule daily reminders based on user settings
+                if (this.settings.enableMealReminders) {
+                    this.notificationManager.scheduleDailyReminders();
+                }
+
+                // Schedule motivational messages if enabled
+                if (this.settings.enableMotivationalMessages) {
+                    this.scheduleMotivationalMessages();
+                }
+            }
+
+            scheduleMotivationalMessages() {
+                const now = new Date();
+                const motivationalTimes = [
+                    { hour: 9, minute: 0, message: '¡Buenos días! Es un gran día para construir hábitos saludables 🌟' },
+                    { hour: 14, minute: 0, message: '¡Vas genial! Recuerda que cada pequeño paso cuenta 💪' },
+                    { hour: 19, minute: 0, message: '¡Casi terminas el día! Reflexiona sobre tus logros de hoy ✨' }
+                ];
+
+                motivationalTimes.forEach((msg, index) => {
+                    const msgTime = new Date();
+                    msgTime.setHours(msg.hour, msg.minute, 0, 0);
+                    
+                    if (msgTime > now) {
+                        setTimeout(() => {
+                            if (this.settings.enableMotivationalMessages) {
+                                this.notificationManager.showMotivationalMessage(msg.message);
+                            }
+                        }, msgTime.getTime() - now.getTime());
+                    }
+                });
+            }
+
+            setupNotificationClickHandlers() {
+                // Listen for notification actions if supported
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.addEventListener('message', (event) => {
+                        const { action, data } = event.data;
+                        this.handleNotificationAction(action, data);
+                    });
+                }
+            }
+
+            setupNotificationClickHandler() {
+                // Listen for custom notification click events
+                window.addEventListener('notificationClick', (event) => {
+                    const { action, data } = event.detail;
+                    this.handleNotificationAction(action, data);
+                });
+            }
+
+            handleNotificationAction(action, data) {
+                switch (action) {
+                    case 'log':
+                        this.elements.messageInput.value = '🍽️ Quiero registrar mi comida: ';
+                        this.elements.messageInput.focus();
+                        break;
+                    case 'checkin':
+                        this.startHourlyCheck();
+                        break;
+                    case 'water':
+                        this.handleQuickAction('water');
+                        break;
+                    case 'accept':
+                        this.showChallengeModal();
+                        break;
+                    default:
+                        // Focus the app window
+                        window.focus();
+                        break;
+                }
+            }
+
+            // Override the existing triggerHourlyCheck to also send notifications
+            triggerHourlyCheck(hour) {
+                const questions = this.getHourlyQuestions(hour);
+                this.elements.checkHour.textContent = `${hour}:00`;
+                this.elements.checkQuestions.innerHTML = questions.map(q => `<p>• ${q}</p>`).join('');
+                this.elements.hourlyCheckPanel.classList.remove('hidden');
+
+                // Send notification if enabled
+                if (this.settings.enableHourlyChecks && this.notificationManager.permission === 'granted') {
+                    this.notificationManager.showHourlyCheckReminder();
+                }
+            }
+
             async sendMessage() {
                 const message = this.elements.messageInput.value.trim();
                 if (!message || !this.geminiModel) return;
@@ -1104,17 +1746,78 @@ Responde como HabitBuddy de manera útil y motivadora.`;
                         description: userMessage,
                         calories: calories
                     });
+
+                    // Send encouraging notification after meal logging
+                    if (this.settings.enableMealReminders && this.notificationManager.permission === 'granted') {
+                        setTimeout(() => {
+                            this.notificationManager.showMotivationalMessage(
+                                `¡Genial! Registraste ${calories} kcal. Mantén el seguimiento de tus comidas 🍽️`
+                            );
+                        }, 2000);
+                    }
+                }
+
+                // Check for water intake
+                if (userMessage.toLowerCase().includes('agua') || userMessage.toLowerCase().includes('hidrat')) {
+                    this.dailyData.water += 1;
+                    
+                    // Send hydration encouragement
+                    if (this.settings.enableHydrationReminders && this.notificationManager.permission === 'granted') {
+                        if (this.dailyData.water >= 8) {
+                            setTimeout(() => {
+                                this.notificationManager.showMotivationalMessage(
+                                    '🎉 ¡Excelente! Ya alcanzaste tu meta de hidratación del día'
+                                );
+                            }, 1500);
+                        }
+                    }
+                }
+
+                // Check for exercise mentions
+                if (userMessage.toLowerCase().includes('ejercicio') || userMessage.toLowerCase().includes('entrenam') || 
+                    userMessage.toLowerCase().includes('gym') || userMessage.toLowerCase().includes('corr')) {
+                    
+                    if (this.settings.enableMotivationalMessages && this.notificationManager.permission === 'granted') {
+                        setTimeout(() => {
+                            this.notificationManager.showMotivationalMessage(
+                                '💪 ¡Increíble! El ejercicio es clave para tu transformación'
+                            );
+                        }, 2000);
+                    }
                 }
 
                 // Check for challenge suggestions
                 if (response.toLowerCase().includes('reto') || response.toLowerCase().includes('desafío')) {
                     this.suggestChallengeFromResponse(response);
+                    
+                    // Notify about new challenge
+                    if (this.settings.enableChallenges && this.notificationManager.permission === 'granted') {
+                        setTimeout(() => {
+                            this.notificationManager.showChallengeNotification();
+                        }, 3000);
+                    }
                 }
 
                 // Extract sleep hours
                 const sleepMatch = userMessage.match(/dormí\s*(\d+)\s*horas?/i);
                 if (sleepMatch) {
-                    this.dailyData.sleep = parseInt(sleepMatch[1]);
+                    const sleepHours = parseInt(sleepMatch[1]);
+                    this.dailyData.sleep = sleepHours;
+                    
+                    // Send sleep feedback
+                    if (this.settings.enableMotivationalMessages && this.notificationManager.permission === 'granted') {
+                        setTimeout(() => {
+                            if (sleepHours >= 7) {
+                                this.notificationManager.showMotivationalMessage(
+                                    '😴 ¡Perfecto! Un buen descanso es fundamental para tus objetivos'
+                                );
+                            } else {
+                                this.notificationManager.showMotivationalMessage(
+                                    '⏰ Intenta dormir más esta noche. Tu cuerpo necesita descanso para recuperarse'
+                                );
+                            }
+                        }, 2000);
+                    }
                 }
 
                 // Update insights
@@ -1504,11 +2207,17 @@ Formato de respuesta:
                 this.settings.enableHourlyChecks = this.elements.enableHourlyChecks.checked;
                 this.settings.enableMealReminders = this.elements.enableMealReminders.checked;
                 this.settings.enableChallenges = this.elements.enableChallenges.checked;
+                this.settings.enableHydrationReminders = this.elements.enableHydrationReminders.checked;
+                this.settings.enableMotivationalMessages = this.elements.enableMotivationalMessages.checked;
 
                 this.calculateDailyCalorieGoal();
                 this.saveUserData();
                 this.updateUI();
                 this.addMessage('system', '💾 Perfil actualizado correctamente. Tus objetivos han sido ajustados.');
+                
+                // Reschedule notifications with new settings
+                this.scheduleNotifications();
+                
                 this.hideSettings();
             }
 
@@ -1520,6 +2229,7 @@ Formato de respuesta:
                     localStorage.removeItem('habitbuddy_history');
                     localStorage.removeItem('habitbuddy_habits');
                     localStorage.removeItem('habitbuddy_api_key');
+                    localStorage.removeItem('habitbuddy_scheduled_notifications');
                     location.reload();
                 }
             }
